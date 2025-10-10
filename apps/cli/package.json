@@ -1,0 +1,23 @@
+{
+  "name": "@repo/cli",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts"
+  },
+  "exports": {
+    "./cli": "./src/ws-server.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@openrouter/ai-sdk-provider": "^1.2.0",
+    "@repo/agent": "*",
+    "ai": "^5.0.65"
+  }
+}
