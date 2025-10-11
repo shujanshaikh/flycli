@@ -10,11 +10,12 @@ You are an expert TypeScript software engineer. There is already a Next.js proje
 `
 export async function createAgent(prompt: string): Promise<string> {
 
-    const openrouter = createOpenRouter({
+  const openrouter = createOpenRouter({
         apiKey: Bun.env.OPENROUTER_API_KEY,
       });
-      
-    const model = openrouter.chat("openai/gpt-5")
+
+  console.log(Bun.env.OPENROUTER_API_KEY)
+  const model = openrouter.chat("openai/gpt-5")
 
   const codingAgent = new Agent({
     model: model,

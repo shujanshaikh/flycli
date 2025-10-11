@@ -16,8 +16,8 @@ export const proxy = createProxyMiddleware({
   },
     // Don't proxy toolbar routes
     pathFilter: (pathname) => {
-      const shouldSkip = pathname.startsWith('/toolbar') || 
-                        pathname.startsWith('/ws');
+      const shouldSkip = pathname.startsWith('/') 
+      ||  pathname.startsWith('/ws');
       return !shouldSkip;
     },
   autoRewrite: true,
