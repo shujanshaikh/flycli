@@ -19,15 +19,6 @@ app.use(express.json());
 const _dirname = dirname(fileURLToPath(import.meta.url));
 
 
-const getImportMap = () => {
-    return {
-        imports: {
-            "react": "https://esm.sh/react",
-            "react-dom": "https://esm.sh/react-dom",
-        },
-    }
-}
-
 // Set up basic middleware and static routes
 const toolbarPath = Bun.env.NODE_ENV === 'production'
     ? resolve(_dirname, '../../toolbar/dist')
