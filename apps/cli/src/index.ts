@@ -18,7 +18,6 @@ app.use(express.json());
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
 
-
 // Set up basic middleware and static routes
 const toolbarPath = Bun.env.NODE_ENV === 'production'
     ? resolve(_dirname, '../../toolbar/dist')
@@ -43,13 +42,13 @@ app.disable('x-powered-by');
 
 wss.on('connection', (ws: any) => {
     console.log('Client connected');
-    
+
     ws.on('message', async (message: string) => {
       try {
         const data = JSON.parse(message.toString());
         console.log(data)
-        
-        
+
+
         // Handle different message types
         switch (data.type) {
           case 'chat_message':
@@ -71,12 +70,12 @@ wss.on('connection', (ws: any) => {
         console.error('Error handling message:', error);
       }
     });
-    
+
     ws.on('close', () => {
       console.log('Client disconnected');
     });
   });
-  
+
 
 
 server.on("upgrade", (_req, socket, head) => {

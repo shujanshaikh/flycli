@@ -1,6 +1,7 @@
 import {z } from "zod"
 import path from "node:path"
-import { readdir , writeFile  , access} from "node:fs/promises";
+import {  writeFile  , access, readFile} from "node:fs/promises";
+import type { Config, ConfigFile } from "./types";
 
 // Zod schema for plugin 
 
@@ -42,20 +43,19 @@ export const CONFIG_FILE_NAME = "jafdotdev.json";
 
 
 
-export async function loadConfigFile ({
+export const loadConfigFile = async ({
     dir 
 } : {
     dir : string
-}) {
+}) : Promise<ConfigFile  | null>  => {
     const configFile = path.join(dir , CONFIG_FILE_NAME)
 
    try {
-    const fileContent = await readdir(configFile , "utf-8")
-    let parsedContent ;
+    const fileContent = await readFile(configFile , "utf-8")
+    let parsedContent : ConfigFile ;
 
- // Parse JSON with better error handling
  try {
-    parsedContent = JSON.parse(fileContent as unknown as string);
+    parsedContent = JSON.parse(fileContent);
   } catch (jsonError) {
     const error = {
       type: 'json',
@@ -74,10 +74,10 @@ export async function loadConfigFile ({
    try {
     const validatedConfig = configFileSchema.parse(parsedContent);
       // Add eddyMode back if it exists
-      let result = validatedConfig;
+      let result : ConfigFile = validatedConfig;
       if (eddyMode !== undefined) {
         // It need to be result.eddyMode it might throw the error or cause issue
-        result = eddyMode;
+        result.eddyMode = eddyMode;
       }
       return result;
    } catch (error) {
@@ -86,12 +86,13 @@ export async function loadConfigFile ({
    } catch (error) {
      console.log(error)
    }
+   return null;
 }
 
 
 export const saveConfigFile = async (
     dir: string,
-    config: string,
+    config: Config,
   ): Promise<void> => {
     const configPath = path.join(dir, CONFIG_FILE_NAME);
   
