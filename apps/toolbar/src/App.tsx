@@ -83,9 +83,6 @@ function App() {
       />
       {/* The toolbar overlay */}
       <div className="toolbar-overlay">
-        <div className="toolbar-header">
-          Jafdotdev Toolbar
-        </div>
         <div className="chat-container" ref={chatContainerRef}>
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.type}`}>

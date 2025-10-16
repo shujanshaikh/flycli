@@ -73,6 +73,7 @@ export class Agenet {
             stream : uiStream
         }))  {
             console.log(uiMessages)
+            
         }
     }
 }

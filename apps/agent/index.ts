@@ -4,6 +4,10 @@ import { Experimental_Agent as Agent, stepCountIs } from 'ai';
 import { editFiles } from './tools/edit-files';
 import { readFile } from './tools/read-file';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { deleteFile } from './tools/delete-file';
+import { globTool } from './tools/glob';
+import { grepTool } from './tools/grep';
+import { list } from './tools/ls';
 
 const systemPrompt = `
 You are an expert TypeScript software engineer. There is already a Next.js project fully set up; do NOT create a new Next.js project or initialization steps. Your only tasks are to use the provided tools—readFile and editFiles—to make all required edits or additions directly within the existing Next.js project. Always use these tools to access and modify code as needed to fulfill the user's request. Only use the tools provided. Make sure to fully understand the instructions given and complete tasks by performing relevant reads and edits in the Next.js project using the appropriate tool.
@@ -22,6 +26,10 @@ export async function createAgent(prompt: string): Promise<string> {
     tools: {
       editFiles: editFiles,
       read_file: readFile,
+      deleteFile: deleteFile,
+      glob : globTool,
+      grep : grepTool,
+      ls : list,
     },
     system: systemPrompt,
     toolChoice: "required",

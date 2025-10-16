@@ -1,5 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod"
+import { writeFile } from "node:fs/promises"
 
 
 export const editFiles = tool({
@@ -13,9 +14,22 @@ export const editFiles = tool({
     code_edit: z.string().describe("The content to write to the file"),
   }),
   execute: async ({ relative_file_path, code_edit }) => {
-    const codes = await Bun.write(relative_file_path, code_edit)
-    console.log(relative_file_path)
-    console.log(code_edit)
-    return { codes };
+    try {
+      const codes = await writeFile(relative_file_path, code_edit , {
+        encoding : "utf-8",
+      })
+      return {
+        success: true,
+        message: `Successfully wrote to file: ${relative_file_path}`,
+        codes: codes,
+      };
+    } catch (error : any) {
+      return {
+        success: false,
+        message: error.message,
+        error: 'WRITE_ERROR',
+      };
+      
+    }
   },
 })
