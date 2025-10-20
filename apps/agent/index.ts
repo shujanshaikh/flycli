@@ -23,14 +23,14 @@ export async function createAgent (message : WSMessage) {
          delayInMs: 20,
          chunking: "word",
        }),
-      //  tools: { 
-      //    editFiles: editFiles,
-      //    readFile: readFile,
-      //    list: list,
-      //    glob: globTool,
-      //    deleteFile: deleteFile,
-      //    grep: grepTool, 
-      //   },
+       tools: { 
+         editFiles: editFiles,
+         readFile: readFile,
+         list: list,
+         glob: globTool,
+         deleteFile: deleteFile,
+         grep: grepTool, 
+        },
      });
     return result;
   } catch (error : any) {

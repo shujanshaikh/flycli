@@ -13,7 +13,7 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
   Conversation,
@@ -24,15 +24,70 @@ import { Message, MessageContent } from '@/components/ai-elements/message';
 import { Response } from '@/components/ai-elements/response';
 import { WebsocketChatTransport } from '../../agent/ws-transport';
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
+import { ChevronDown, ChevronUp, GripVertical, Minimize2, Maximize2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Chat = () => {
   const [text, setText] = useState<string>('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(false);
-
-  // I need to specify the tool call result what type of tool call is this 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const toolbarRef = useRef<HTMLDivElement>(null);
 
   const handleToolCall = useCallback((result: any) => { console.log('result', result); }, []);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent dragging if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="button"]')) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (toolbarRef.current) {
+      const rect = toolbarRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+      setIsDragging(true);
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+        setPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'grabbing';
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
   
   const transport = new WebsocketChatTransport({
     agent: 'ws',
@@ -40,7 +95,7 @@ const Chat = () => {
     url: 'http://localhost:3100/ws',
   });
 
-  const { messages, sendMessage } = useChat({
+  const { messages, sendMessage , status } = useChat({
     onFinish: () => setLoading(false),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     transport,
@@ -64,73 +119,101 @@ const Chat = () => {
   };
 
   return (
-    <>
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden">
       <iframe
         src="http://localhost:3000"
+        className="absolute inset-0 w-full h-full border-0 bg-background"
         style={{
-          width: '100%',
-          height: '100%',
-          border: 'none',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          zIndex: -1
+          zIndex: 0
         }}
       />
-      
-      {/* Chat overlay */}
-      <div className="max-w-4xl mx-2 p-6 relative size-full rounded-lg h-[600px] bg-black/10 backdrop-blur-sm">
-      <div className="flex flex-col h-full">
-        <Conversation>
-          <ConversationContent>
-            {messages.map((message) => (
-              <Message from={message.role} key={message.id}>
-                <MessageContent>
-                  {message.parts.map((part, i) => {
-                    switch (part.type) {
-                      case 'text':
-                        return (
-                          <Response key={`${message.id}-${i}`}>
-                            {part.text}
-                          </Response>
-                        );
-                      default:
-                        return null;
-                    }
-                  })}
-                </MessageContent>
-              </Message>
-            ))}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
+  
+      <div
+        ref={toolbarRef}
+        className="fixed pointer-events-auto"
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          width: '400px',
+          zIndex: 1000,
+          cursor: isDragging ? 'grabbing' : 'default'
+        }}
+      >
+        <div className="flex flex-col bg-background/95 backdrop-blur-md rounded-lg border border-border shadow-2xl overflow-hidden">
+          <div 
+            className="flex items-center justify-between px-4 py-2 bg-muted/50 border-b border-border cursor-grab active:cursor-grabbing"
+            onMouseDown={handleMouseDown}
+          >
+            <div className="flex items-center gap-2">
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">snappy agent</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="default"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+              >
+                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
 
-        <PromptInput onSubmit={handleSubmit} className="mt-4" globalDrop multiple>
-          <PromptInputBody>
-            <PromptInputAttachments>
-              {(attachment) => <PromptInputAttachment data={attachment} />}
-            </PromptInputAttachments>
-            <PromptInputTextarea
-              onChange={(e) => setText(e.target.value)}
-              ref={textareaRef}
-              value={text}
-            />
-          </PromptInputBody>
-          <PromptInputFooter>
-            <PromptInputTools>
-              <PromptInputActionMenu>
-                <PromptInputActionMenuTrigger />
-                <PromptInputActionMenuContent>
-                  <PromptInputActionAddAttachments />
-                </PromptInputActionMenuContent>
-              </PromptInputActionMenu>
-            </PromptInputTools>
-            <PromptInputSubmit disabled={!text && !loading} status={loading ? 'submitted' : undefined} />
-          </PromptInputFooter>
-        </PromptInput>
+          {!isCollapsed && (
+            <div className="flex flex-col p-4" style={{ height: '400px' }}>
+              <Conversation>
+                <ConversationContent>
+                  {messages.map((message) => (
+                    <Message from={message.role} key={message.id}>
+                      <MessageContent>
+                        {message.parts.map((part, i) => {
+                          switch (part.type) {
+                            case 'text':
+                              return (
+                                <Response key={`${message.id}-${i}`}>
+                                  {part.text}
+                                </Response>
+                              );
+                            default:
+                              return null;
+                          }
+                        })}
+                      </MessageContent>
+                    </Message>
+                  ))}
+                </ConversationContent>
+                <ConversationScrollButton />
+              </Conversation>
+
+              <PromptInput onSubmit={handleSubmit} className="mt-4" globalDrop multiple>
+                <PromptInputBody>
+                  <PromptInputAttachments>
+                    {(attachment) => <PromptInputAttachment data={attachment} />}
+                  </PromptInputAttachments>
+                  <PromptInputTextarea
+                    onChange={(e) => setText(e.target.value)}
+                    ref={textareaRef}
+                    value={text}
+                  />
+                </PromptInputBody>
+                <PromptInputFooter>
+                  <PromptInputTools>
+                    <PromptInputActionMenu>
+                      <PromptInputActionMenuTrigger />
+                      <PromptInputActionMenuContent>
+                        <PromptInputActionAddAttachments />
+                      </PromptInputActionMenuContent>
+                    </PromptInputActionMenu>
+                  </PromptInputTools>
+                  <PromptInputSubmit disabled={!text && !loading} status={status === 'submitted' ? 'submitted' : undefined} />
+                </PromptInputFooter>
+              </PromptInput>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-    </>
   );
 };
 

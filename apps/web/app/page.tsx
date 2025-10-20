@@ -1,102 +1,65 @@
-import Image, { type ImageProps } from "next/image";
 import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+import { ArrowRight, Zap } from "lucide-react";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
-
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
+/**
+ * @title Home Page Component
+ * @description Renders a dark-mode-first, responsive landing page hero section.
+ */
+export default function Home(): React.JSX.Element {
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+    // Removed min-h-[calc(100vh)] and justify-center to allow content flow below the sticky NavBar
+    // Added min-h-screen to ensure background fills the viewport height
+    <main className="flex min-h-screen flex-col items-center bg-zinc-950 text-white dark:bg-zinc-950">
+      {/* Background/Overlay Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 opacity-90"></div>
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.com/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+      {/* Content Container */}
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center sm:px-6 lg:px-8">
+        {/* Badge */}
+        <div className="mb-8 flex justify-center">
+          <span className="inline-flex items-center rounded-full bg-zinc-800 px-4 py-1.5 text-sm font-medium text-zinc-300 ring-1 ring-inset ring-zinc-700 hover:ring-zinc-600 transition duration-300">
+            <Zap className="h-4 w-4 mr-2 text-yellow-400" />
+            New Feature: The future is now!
+          </span>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.com?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.com →
-        </a>
-      </footer>
-    </div>
+
+        {/* Main Heading */}
+        <h1 className="text-5xl font-extrabold tracking-tight text-zinc-50 sm:text-7xl lg:text-8xl">
+          Build <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">Blazing Fast</span>
+          <br className="hidden sm:block" /> Applications
+        </h1>
+
+        {/* Subtitle / Description */}
+        <p className="mt-6 text-xl text-zinc-400 sm:text-2xl max-w-3xl mx-auto">
+          Expertly crafted with TypeScript, Next.js, and Tailwind CSS. Deploy
+          production-ready code instantly with the power of the Monorepo.
+        </p>
+
+        {/* Call-to-Action Buttons */}
+        <div className="mt-10 flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+          <Button
+            appName="web"
+            className="group w-full sm:w-auto flex items-center justify-center space-x-2 rounded-full bg-blue-600 px-8 py-3 text-lg font-semibold text-white shadow-lg shadow-blue-600/30 transition duration-300 hover:bg-blue-500 hover:shadow-blue-500/40"
+          >
+            <span>Get Started Free</span>
+            <ArrowRight className="h-5 w-5 ml-1 transition-transform group-hover:translate-x-1" />
+          </Button>
+
+          <Button
+            appName="web"
+            className="w-full sm:w-auto rounded-full border border-zinc-700 bg-zinc-800 px-8 py-3 text-lg font-semibold text-zinc-200 transition duration-300 hover:border-zinc-600 hover:bg-zinc-700"
+          >
+            View Documentation
+          </Button>
+        </div>
+      </div>
+      
+      {/* Footer Content Example (Optional) */}
+      <div className="relative z-10 py-12">
+        <p className="text-sm text-zinc-600">
+          A project by an idiot. Built with <span className="text-zinc-500">passion</span>.
+        </p>
+      </div>
+    </main>
   );
 }
