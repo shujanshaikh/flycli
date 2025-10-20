@@ -56,38 +56,19 @@ wss.on('connection', (ws) => {
 
     ws.on('message', async (message: WSMessage) => {
       try {
-        console.log(message.toString())
-        const data = JSON.parse(message as string) as SendMessagesParams
-        console.log(data.messages)
-        const result = streamText({
-         messages: convertToModelMessages(data.messages),
-         model: google("gemini-2.5-flash-preview-09-2025"),
-         stopWhen: stepCountIs(20), // Stop after 5 steps with tool calls
-         system: "You are a helpful assistant",
-         experimental_transform: smoothStream({
-           delayInMs: 20,
-           chunking: "word",
-         }),
-          //  tools: { 
-          //    editFiles: editFiles,
-          //    readFile: readFile,
-          //    list: list,
-          //    glob: globTool,
-          //    deleteFile: deleteFile,
-          //    grep: grepTool, 
-          //   },
-       });
-   
-       // Handle streaming text chunks using UIMessageStream
-       for await (const chunk of result.toUIMessageStream()) {
-         //console.log(chunk)
-         ws.send(JSON.stringify(chunk));
-       }
-
-
-  
+        const result = await createAgent(message);
+        for await (const chunk of result.toUIMessageStream()) {
+          //console.log(chunk)
+          ws.send(JSON.stringify(chunk));
+        }
       } catch (error) {
         console.error('Error handling message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Error creating agent',
+          error: (error as Error).message,
+        }));
+        ws.close();
       }
     });
 

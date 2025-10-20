@@ -8,12 +8,13 @@
   },
   "exports": {
     "./agent": "./index.ts",
-    "./tool" : "."
+    "./tool": "."
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.23",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@repo/cli": "*",
     "@types/ws": "^8.18.1",
