@@ -1,71 +1,67 @@
-import { useState, useEffect, useRef } from 'react'
-import './App.css'
+import {
+  PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
+  PromptInputAttachment,
+  PromptInputAttachments,
+  PromptInputBody,
+  PromptInputFooter,
+  type PromptInputMessage,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputTools,
+} from '@/components/ai-elements/prompt-input';
+import { useCallback, useRef, useState } from 'react';
+import { useChat } from '@ai-sdk/react';
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from '@/components/ai-elements/conversation';
+import { Message, MessageContent } from '@/components/ai-elements/message';
+import { Response } from '@/components/ai-elements/response';
+import { WebsocketChatTransport } from '../../agent/ws-transport';
+import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 
-interface Message {
-  content: string
-  type: 'user' | 'agent'
-}
+const Chat = () => {
+  const [text, setText] = useState<string>('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [loading, setLoading] = useState(false);
 
-function App() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [inputValue, setInputValue] = useState('')
-  const [isConnected, setIsConnected] = useState(false)
-  const ws = useRef<WebSocket | null>(null)
-  const chatContainerRef = useRef<HTMLDivElement>(null)
+  // I need to specify the tool call result what type of tool call is this 
 
-  useEffect(() => {
-    // Connect to WebSocket
-    ws.current = new WebSocket('ws://localhost:3100/ws')
+  const handleToolCall = useCallback((result: any) => { console.log('result', result); }, []);
+  
+  const transport = new WebsocketChatTransport({
+    agent: 'ws',
+    toolCallCallback: handleToolCall,
+    url: 'http://localhost:3100/ws',
+  });
 
-    ws.current.onopen = () => {
-      console.log('Connected to agent')
-      setIsConnected(true)
+  const { messages, sendMessage } = useChat({
+    onFinish: () => setLoading(false),
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    transport,
+  });
+  //console.log('messages', messages);
+  const handleSubmit = (message: PromptInputMessage) => {
+    const hasText = Boolean(message.text);
+    const hasAttachments = Boolean(message.files?.length);
+
+    if (!(hasText || hasAttachments)) {
+      return;
     }
 
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-
-      if (data.type === 'agent_message') {
-        setMessages(prev => [...prev, { content: data.content, type: 'agent' }])
-      }
-    }
-
-    ws.current.onclose = () => {
-      console.log('Disconnected from agent')
-      setIsConnected(false)
-    }
-
-    return () => {
-      ws.current?.close()
-    }
-  }, [])
-
-  useEffect(() => {
-    // Scroll to bottom when new messages arrive
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    }
-  }, [messages])
-
-  const sendMessage = () => {
-    const message = inputValue.trim()
-    if (!message || !ws.current || !isConnected) return
-
-    setMessages(prev => [...prev, { content: message, type: 'user' }])
-
-    ws.current.send(JSON.stringify({
-      type: 'chat_message',
-      content: message
-    }))
-
-    setInputValue('')
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      sendMessage()
-    }
-  }
+    sendMessage(
+      { 
+        text: message.text || 'Sent with attachments',
+        files: message.files 
+      },
+    );
+    setText('');
+  };
 
   return (
     <>
@@ -81,34 +77,61 @@ function App() {
           zIndex: -1
         }}
       />
-      {/* The toolbar overlay */}
-      <div className="toolbar-overlay">
-        <div className="chat-container" ref={chatContainerRef}>
-          {messages.map((message, index) => (
-            <div key={index} className={`message ${message.type}`}>
-              {message.content}
-            </div>
-          ))}
-        </div>
-        <div className="input-container">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask me to change your website..."
-            disabled={!isConnected}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!isConnected || !inputValue.trim()}
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </>
-  )
-}
+      
+      {/* Chat overlay */}
+      <div className="max-w-4xl mx-2 p-6 relative size-full rounded-lg h-[600px] bg-black/10 backdrop-blur-sm">
+      <div className="flex flex-col h-full">
+        <Conversation>
+          <ConversationContent>
+            {messages.map((message) => (
+              <Message from={message.role} key={message.id}>
+                <MessageContent>
+                  {message.parts.map((part, i) => {
+                    switch (part.type) {
+                      case 'text':
+                        return (
+                          <Response key={`${message.id}-${i}`}>
+                            {part.text}
+                          </Response>
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
+                </MessageContent>
+              </Message>
+            ))}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
 
-export default App
+        <PromptInput onSubmit={handleSubmit} className="mt-4" globalDrop multiple>
+          <PromptInputBody>
+            <PromptInputAttachments>
+              {(attachment) => <PromptInputAttachment data={attachment} />}
+            </PromptInputAttachments>
+            <PromptInputTextarea
+              onChange={(e) => setText(e.target.value)}
+              ref={textareaRef}
+              value={text}
+            />
+          </PromptInputBody>
+          <PromptInputFooter>
+            <PromptInputTools>
+              <PromptInputActionMenu>
+                <PromptInputActionMenuTrigger />
+                <PromptInputActionMenuContent>
+                  <PromptInputActionAddAttachments />
+                </PromptInputActionMenuContent>
+              </PromptInputActionMenu>
+            </PromptInputTools>
+            <PromptInputSubmit disabled={!text && !loading} status={loading ? 'submitted' : undefined} />
+          </PromptInputFooter>
+        </PromptInput>
+      </div>
+    </div>
+    </>
+  );
+};
+
+export default Chat;

@@ -1,79 +1,50 @@
-import { convertToModelMessages, generateId, readUIMessageStream, smoothStream, stepCountIs, streamText, type InferUIMessageChunk, type UIMessage } from "ai"
-import { createWsServer } from "@repo/cli/cli"
-import { WebSocketServer } from "ws"
-import { editFiles } from "./tools/edit-files";
+// import { openrouter } from "@openrouter/ai-sdk-provider";
+// import { streamText , convertToModelMessages , stepCountIs , smoothStream} from "ai"
+// import { SYSTEM_PROMPT } from "./prompt";
+// import { editFiles } from "./tools/edit-files";
+// import { readFile } from "./tools/read-file";
+// import { list } from "./tools/ls";
+// import { globTool } from "./tools/glob";
+// import { deleteFile } from "./tools/delete-file";
+// import { grepTool } from "./tools/grep";
+// import type { WSMessage } from 'agents';
+// import type { SendMessagesParams } from "./ws-transport";
 
-export class Agenet {
-    private karton: WebSocketServer | null = null;
-    private lastMessageId : string | null = null
-
-   public async initlize() {
-        this.karton = await createWsServer(); 
-        if (!this.karton) {
-            throw new Error("Failed to create ws server")
-        }
-        this.karton.on("connection", (ws) => {
-            console.log("Connected to agent")
-        })
-        this.karton.on("error", (error) => {
-            console.error("Error in ws server", error)
-        })
-
-        this.karton.on("close", () => {
-            console.log("Ws server closed")
-        })
-    }
-
-
-    public async callAgent({
-        messages,
-        model
-    }: {
-
-        messages: UIMessage[],
-        model : string
-
-    }) {
-        const stream = streamText({
-            messages: convertToModelMessages(messages),
-            model: "",
-            system: "",
-            temperature: 0.1,
-            stopWhen: stepCountIs(20),
-            experimental_transform: smoothStream({
-                delayInMs: 10,
-                chunking: "line",
-            }),
-            maxRetries: 3,
-            tools: {
-                edit_file: editFiles
-            },
-            onFinish: () => {
-
-            }
-        });
-
-        stream.consumeStream();
-        const uiMessages = stream.toUIMessageStream({
-            generateMessageId : generateId
-        })
-       
-        await this.parseUiStream(uiMessages, (messageId) => {
-            this.lastMessageId = messageId;
-          });
-
-    }
-
-    private async parseUiStream(
-        // Todo : Conver the UIMessage to own custom ChatMessage
-        uiStream: ReadableStream<InferUIMessageChunk<UIMessage>>,
-        onNewMessage?: (messageId: string) => void,
-    ) {
-        for await (const uiMessages of readUIMessageStream({
-            stream : uiStream
-        }))  {
-            console.log(uiMessages)
-            
-        }
-    }
-}
+// export async function createAgent (message : WSMessage , ws : WebSocket ) {
+//     try {
+//         const data = JSON.parse(message as string) as SendMessagesParams
+//       const result = streamText({
+//        messages: convertToModelMessages(data.messages),
+//        model: openrouter.chat("openai/gpt-5-nano"),
+//        stopWhen: stepCountIs(20), // Stop after 5 steps with tool calls
+//        system: SYSTEM_PROMPT,
+//        experimental_transform: smoothStream({
+//          delayInMs: 20,
+//          chunking: "word",
+//        }),
+//        tools: { 
+//          editFiles: editFiles,
+//          readFile: readFile,
+//          list: list,
+//          glob: globTool,
+//          deleteFile: deleteFile,
+//          grep: grepTool, 
+//         },
+//      });
+ 
+//      // Handle streaming text chunks using UIMessageStream
+//      for await (const chunk of result.toUIMessageStream()) {
+//        //console.log(chunk)
+//        ws.send(JSON.stringify(chunk));
+//      }
+//     } catch (error : any) {
+//         console.error('Error creating agent:', error);
+//         ws.send(JSON.stringify({
+//             type: 'error',
+//             message: 'Error creating agent',
+//             error: error.message,
+//         }));
+//         ws.close();
+//         return error;
+//     }
+// }

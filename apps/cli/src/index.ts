@@ -6,6 +6,12 @@ import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { WebSocketServer } from "ws";
 import { createAgent } from "@repo/agent/agent";
+import type { WSMessage } from 'agents';
+import { WebSocket } from "ws";
+import type { SendMessagesParams } from "../../agent/ws-transport";
+import { smoothStream, stepCountIs , convertToModelMessages , streamText } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { google } from "@ai-sdk/google";
 
 const app = express();
 const server = createServer(app);
@@ -40,32 +46,46 @@ app.get('/{*splat}', (req: Request, res: Response) => {
 app.disable('x-powered-by');
 
 
-wss.on('connection', (ws: any) => {
+const openrouter = createOpenRouter({
+  apiKey: Bun.env.OPENROUTER_API_KEY,
+});
+
+
+wss.on('connection', (ws) => {
     console.log('Client connected');
 
-    ws.on('message', async (message: string) => {
+    ws.on('message', async (message: WSMessage) => {
       try {
-        const data = JSON.parse(message.toString());
-        console.log(data)
+        console.log(message.toString())
+        const data = JSON.parse(message as string) as SendMessagesParams
+        console.log(data.messages)
+        const result = streamText({
+         messages: convertToModelMessages(data.messages),
+         model: google("gemini-2.5-flash-preview-09-2025"),
+         stopWhen: stepCountIs(20), // Stop after 5 steps with tool calls
+         system: "You are a helpful assistant",
+         experimental_transform: smoothStream({
+           delayInMs: 20,
+           chunking: "word",
+         }),
+          //  tools: { 
+          //    editFiles: editFiles,
+          //    readFile: readFile,
+          //    list: list,
+          //    glob: globTool,
+          //    deleteFile: deleteFile,
+          //    grep: grepTool, 
+          //   },
+       });
+   
+       // Handle streaming text chunks using UIMessageStream
+       for await (const chunk of result.toUIMessageStream()) {
+         //console.log(chunk)
+         ws.send(JSON.stringify(chunk));
+       }
 
 
-        // Handle different message types
-        switch (data.type) {
-          case 'chat_message':
-            // try {
-            //   const response = await createAgent(data.content ?? "Edit the file in the web folder edit the page.tsx and make a simple ui for this website ");
-            //   ws.send(JSON.stringify({ type: 'agent_message', content: response }));
-            // } catch (err) {
-            //   console.error('Agent error:', err);
-            //   ws.send(JSON.stringify({ type: 'agent_message', content: 'Sorry, something went wrong running the agent.' }));
-            // }
-            // break;
-            console.log('chat_message', data.content)
-            break;
-          case 'element_selected':
-            // We'll implement this in Step 4
-            break;
-        }
+  
       } catch (error) {
         console.error('Error handling message:', error);
       }
@@ -78,9 +98,9 @@ wss.on('connection', (ws: any) => {
 
 
 
-server.on("upgrade", (_req, socket, head) => {
+// server.on("upgrade", (_req, socket, head) => {
 
-})
+// })
 
 
 server.listen(DEV_PORT, () => {

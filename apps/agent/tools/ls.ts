@@ -1,6 +1,6 @@
 import { tool } from "ai";
-import { z } from "zod"
-import { exists, readdir, stat } from "node:fs/promises";
+import { z } from "zod";
+import { access, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 export const list = tool({
@@ -25,7 +25,10 @@ export const list = tool({
       }
     }
 
-    if (!includeFiles && !includeDirectories) {
+    const includeFilesNormalized = includeFiles ?? true;
+    const includeDirectoriesNormalized = includeDirectories ?? true;
+
+    if (!includeFilesNormalized && !includeDirectoriesNormalized) {
       return {
         success: false,
         message:
@@ -35,8 +38,9 @@ export const list = tool({
     }
     try {
       const absolutePath = relativePath ? path.resolve(relativePath) : process.cwd();
-      const fileExists = await exists(absolutePath);
-      if (!fileExists) {
+      try {
+        await access(absolutePath);
+      } catch {
         return {
           success: false,
           message: `File does not exist: ${absolutePath}`,
@@ -53,38 +57,86 @@ export const list = tool({
         };
       }
 
-      const result = await readdir(absolutePath, {
-        recursive: recursive || false,
-        encoding: "buffer",
-        withFileTypes: true,
-      })
+      const collected: Array<{
+        name: string;
+        absolutePath: string;
+        relativePath: string;
+        type: "file" | "directory";
+      }> = [];
 
-      if (!result) {
-        return {
-          success: false,
-          message: `Failed to list files: ${absolutePath}`,
-          error: 'LIST_ERROR',
-        };
-      }
+      const patternMatcher = (() => {
+        if (!pattern) return null;
 
-      const totalFiles = result.filter(item => item.isFile()).length;
-      const totalDirectories = result.filter(item => item.isDirectory()).length;
+        if (pattern.startsWith(".") && !pattern.includes("*") && !pattern.includes("?")) {
+          return (entryName: string) => entryName.endsWith(pattern);
+        }
 
-      let message = `Successfully listed ${result.length || 0} items in: ${relativePath}`;
+        const escaped = pattern
+          .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+          .replace(/\*/g, ".*")
+          .replace(/\?/g, ".");
+        const regex = new RegExp(`^${escaped}$`);
+        return (entryName: string) => regex.test(entryName);
+      })();
+
+      const matchPattern = (entryName: string) => {
+        if (!patternMatcher) return true;
+        return patternMatcher(entryName);
+      };
+
+      const maxDepthNormalized = recursive ? maxDepth ?? Infinity : 0;
+
+      const walk = async (currentDir: string, depth: number) => {
+        const entries = await readdir(currentDir, { withFileTypes: true });
+
+        for (const entry of entries) {
+          const entryAbsolutePath = path.join(currentDir, entry.name);
+          const entryRelativePath = path.relative(absolutePath, entryAbsolutePath) || ".";
+
+          if (entry.isDirectory()) {
+            if (includeDirectoriesNormalized && matchPattern(entry.name)) {
+              collected.push({
+                name: entry.name,
+                absolutePath: entryAbsolutePath,
+                relativePath: entryRelativePath,
+                type: "directory",
+              });
+            }
+
+            if (recursive && depth < maxDepthNormalized) {
+              await walk(entryAbsolutePath, depth + 1);
+            }
+          } else if (entry.isFile()) {
+            if (includeFilesNormalized && matchPattern(entry.name)) {
+              collected.push({
+                name: entry.name,
+                absolutePath: entryAbsolutePath,
+                relativePath: entryRelativePath,
+                type: "file",
+              });
+            }
+          }
+        }
+      };
+
+      await walk(absolutePath, 0);
+
+      const totalFiles = collected.filter(item => item.type === "file").length;
+      const totalDirectories = collected.filter(item => item.type === "directory").length;
+
+      let message = `Successfully listed ${collected.length} items in: ${relativePath ?? absolutePath}`;
       if (recursive) {
-        message += ` (recursive${maxDepth !== undefined ? `, max depth ${maxDepth}` : ''})`;
+        message += ` (recursive${maxDepth !== undefined ? `, max depth ${maxDepth}` : ""})`;
       }
       if (pattern) {
         message += ` (filtered by pattern: ${pattern})`;
       }
-      message += ` - ${totalFiles || 0} files, ${totalDirectories || 0} directories`;
-
-
+      message += ` - ${totalFiles} files, ${totalDirectories} directories`;
 
       return {
         success: true,
-        message: message,
-        files: result,
+        message,
+        files: collected,
       };
     } catch (error) {
       return {

@@ -1,49 +1,50 @@
+import { openrouter } from "@openrouter/ai-sdk-provider";
+import { streamText , convertToModelMessages , stepCountIs , smoothStream} from "ai"
+import { SYSTEM_PROMPT } from "./prompt";
+import { editFiles } from "./tools/edit-files";
+import { readFile } from "./tools/read-file";
+import { list } from "./tools/ls";
+import { globTool } from "./tools/glob";
+import { deleteFile } from "./tools/delete-file";
+import { grepTool } from "./tools/grep";
+import type { WSMessage } from 'agents';
+import type { SendMessagesParams } from "./ws-transport";
 
-
-import { Experimental_Agent as Agent, stepCountIs } from 'ai';
-import { editFiles } from './tools/edit-files';
-import { readFile } from './tools/read-file';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { deleteFile } from './tools/delete-file';
-import { globTool } from './tools/glob';
-import { grepTool } from './tools/grep';
-import { list } from './tools/ls';
-
-const systemPrompt = `
-You are an expert TypeScript software engineer. There is already a Next.js project fully set up; do NOT create a new Next.js project or initialization steps. Your only tasks are to use the provided tools—readFile and editFiles—to make all required edits or additions directly within the existing Next.js project. Always use these tools to access and modify code as needed to fulfill the user's request. Only use the tools provided. Make sure to fully understand the instructions given and complete tasks by performing relevant reads and edits in the Next.js project using the appropriate tool.
-`
-export async function createAgent(prompt: string): Promise<string> {
-
-  const openrouter = createOpenRouter({
-        apiKey: Bun.env.OPENROUTER_API_KEY,
-      });
-
-  console.log(Bun.env.OPENROUTER_API_KEY)
-  const model = openrouter.chat("openai/gpt-5")
-
-  const codingAgent = new Agent({
-    model: model,
-    tools: {
-      editFiles: editFiles,
-      read_file: readFile,
-      deleteFile: deleteFile,
-      glob : globTool,
-      grep : grepTool,
-      ls : list,
-    },
-    system: systemPrompt,
-    toolChoice: "required",
-    stopWhen: stepCountIs(10),
-  });
-
-  const stream = codingAgent.stream({
-    prompt,
-  });
-
-  let fullText = "";
-  for await (const chunk of stream.textStream) {
-    fullText += chunk;
-  }
-  return fullText;
+export async function createAgent (message : WSMessage , ws : WebSocket ) {
+    try {
+        const data = JSON.parse(message as string) as SendMessagesParams
+      const result = streamText({
+       messages: convertToModelMessages(data.messages),
+       model: openrouter.chat("openai/gpt-5-nano"),
+       stopWhen: stepCountIs(20), // Stop after 5 steps with tool calls
+       system: SYSTEM_PROMPT,
+       experimental_transform: smoothStream({
+         delayInMs: 20,
+         chunking: "word",
+       }),
+       tools: { 
+         editFiles: editFiles,
+         readFile: readFile,
+         list: list,
+         glob: globTool,
+         deleteFile: deleteFile,
+         grep: grepTool, 
+        },
+     });
+ 
+     // Handle streaming text chunks using UIMessageStream
+     for await (const chunk of result.toUIMessageStream()) {
+       //console.log(chunk)
+       ws.send(JSON.stringify(chunk));
+     }
+    } catch (error : any) {
+        console.error('Error creating agent:', error);
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Error creating agent',
+            error: error.message,
+        }));
+        ws.close();
+        return error;
+    }
 }
-

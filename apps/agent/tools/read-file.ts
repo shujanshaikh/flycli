@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { readdir } from "node:fs/promises";
+import { readFile as fsReadFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 
@@ -41,10 +41,22 @@ export const readFile = tool({
         };
       }
 
-      if (!start_line_one_indexed) {
+      if (!should_read_entire_file) {
         if (
-          !Number.isInteger(start_line_one_indexed!) ||
-          start_line_one_indexed! < 1
+          start_line_one_indexed === undefined ||
+          end_line_one_indexed === undefined
+        ) {
+          return {
+            success: false,
+            message:
+              'start_line_one_indexed and end_line_one_indexed are required when should_read_entire_file is false',
+            error: 'MISSING_LINE_RANGE',
+          };
+        }
+
+        if (
+          !Number.isInteger(start_line_one_indexed) ||
+          start_line_one_indexed < 1
         ) {
           return {
             success: false,
@@ -53,9 +65,10 @@ export const readFile = tool({
             error: 'INVALID_START_LINE',
           };
         }
+
         if (
-          !Number.isInteger(end_line_one_indexed!) ||
-          end_line_one_indexed! < 1
+          !Number.isInteger(end_line_one_indexed) ||
+          end_line_one_indexed < 1
         ) {
           return {
             success: false,
@@ -65,7 +78,7 @@ export const readFile = tool({
           };
         }
 
-        if (end_line_one_indexed! < start_line_one_indexed!) {
+        if (end_line_one_indexed < start_line_one_indexed) {
           return {
             success: false,
             message:
@@ -73,68 +86,78 @@ export const readFile = tool({
             error: 'INVALID_LINE_RANGE',
           };
         }
-
-
       }
-     try {
-        const absolute_file_path = path.resolve(relative_file_path)
-        if (!absolute_file_path) {
+
+      const absolute_file_path = path.resolve(relative_file_path);
+
+      try {
+        const fileStats = await stat(absolute_file_path);
+        if (!fileStats.isFile()) {
           return {
             success: false,
-            message: 'Invalid file path',
-            error: 'INVALID_FILE_PATH',
+            message: `Path is not a file: ${relative_file_path}`,
+            error: 'NOT_A_FILE',
           };
         }
-
-        const readOptions = should_read_entire_file ?
-          undefined : {
-            start_line: start_line_one_indexed,
-            end_line: end_line_one_indexed,
-          }
-
-        const readResult = await readdir(absolute_file_path, {
-          encoding: "utf-8",
-          recursive: true,
-          ...readOptions,
-        })
-       
-       
-        if (!readResult) {
+      } catch (error: any) {
+        if (error?.code === 'ENOENT') {
           return {
             success: false,
-            message: `Failed to read file: ${relative_file_path}`,
-            error: 'READ_ERROR',
+            message: `File not found: ${relative_file_path}`,
+            error: 'FILE_NOT_FOUND',
           };
         }
+        return {
+          success: false,
+          message: `Failed to access file: ${relative_file_path}`,
+          error: 'READ_ERROR',
+        };
+      }
 
-        const content = readResult.join('\n');
-        const totalLines = readResult.length || content?.split('\n').length;
+      try {
+        const fileContent = await fsReadFile(absolute_file_path, 'utf-8');
+        const lines = fileContent.split(/\r?\n/);
+        const totalLines = lines.length;
 
-
-        let message: string;
         if (should_read_entire_file) {
-          message = `Successfully read entire file: ${relative_file_path} (${totalLines} lines)`;
-        } else {
-          const linesRead = content?.split('\n').length || 0;
-          message = `Successfully read lines ${start_line_one_indexed}-${end_line_one_indexed} from file: ${relative_file_path} (${linesRead} lines of ${totalLines} total)`;
+          return {
+            success: true,
+            message: `Successfully read entire file: ${relative_file_path} (${totalLines} lines)` ,
+            content: fileContent,
+            totalLines,
+          };
         }
+
+        const startIndex = (start_line_one_indexed as number) - 1;
+        if (startIndex >= totalLines) {
+          return {
+            success: false,
+            message:
+              'start_line_one_indexed must be less than or equal to the total number of lines in the file',
+            error: 'INVALID_LINE_RANGE',
+          };
+        }
+
+        const normalizedEnd = Math.min(end_line_one_indexed as number, totalLines);
+        const selectedLines = lines
+          .slice(startIndex, normalizedEnd)
+          .join('\n');
+        const linesRead = normalizedEnd - (start_line_one_indexed as number) + 1;
 
         return {
           success: true,
-          message: message,
-          content: content,
-          totalLines: totalLines,
+          message: `Successfully read lines ${start_line_one_indexed}-${normalizedEnd} from file: ${relative_file_path} (${linesRead} lines of ${totalLines} total)`,
+          content: selectedLines,
+          totalLines,
         };
-
-      } catch (error) {
+      } catch {
         return {
           success: false,
           message: `Failed to read file: ${relative_file_path}`,
           error: 'READ_ERROR',
         };
       }
-
-    } catch (error) {
+    } catch {
       return {
         success: false,
         message: `Failed to read file: ${relative_file_path}`,
