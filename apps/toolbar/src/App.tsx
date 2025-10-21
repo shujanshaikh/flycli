@@ -90,9 +90,9 @@ const Chat = () => {
   }, [isDragging, dragOffset]);
   
   const transport = new WebsocketChatTransport({
-    agent: 'ws',
+    agent: 'agent',
     toolCallCallback: handleToolCall,
-    url: 'http://localhost:3100/ws',
+    url: 'http://localhost:3100/agent',
   });
 
   const { messages, sendMessage , status } = useChat({
@@ -146,7 +146,7 @@ const Chat = () => {
           >
             <div className="flex items-center gap-2">
               <GripVertical className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">snappy agent</span>
+              <span className="text-sm font-medium">jaffdotdev</span>
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -206,7 +206,7 @@ const Chat = () => {
                       </PromptInputActionMenuContent>
                     </PromptInputActionMenu>
                   </PromptInputTools>
-                  <PromptInputSubmit disabled={!text && !loading} status={status === 'submitted' ? 'submitted' : undefined} />
+                  <PromptInputSubmit disabled={!text && !loading} status={status ===  "streaming" ? 'streaming' : undefined} />
                 </PromptInputFooter>
               </PromptInput>
             </div>

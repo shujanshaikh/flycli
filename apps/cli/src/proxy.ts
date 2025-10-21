@@ -1,26 +1,25 @@
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware as createProxy } from "http-proxy-middleware";
 
-export const PORT = 3000;
-export const DEV_PORT = 3100;
-
-export const proxy = createProxyMiddleware({
-  target: `http://localhost:${PORT}`,
-  changeOrigin: true,
-  ws : true,
-  followRedirects: false,
-  cookieDomainRewrite: {
-    "*" : "",
-  },
-  router : () => {
-      return `http://localhost:${PORT}`;
-  },
+export function createProxyMiddleware(appPort: number) {
+  return createProxy({
+    target: `http://localhost:${appPort}`,
+    changeOrigin: true,
+    ws: true,
+    followRedirects: false,
+    cookieDomainRewrite: {
+      "*": "",
+    },
+    router: () => {
+      return `http://localhost:${appPort}`;
+    },
     // Don't proxy toolbar routes
     pathFilter: (pathname) => {
       const shouldSkip = pathname.startsWith('/') 
-      ||  pathname.startsWith('/ws');
+        || pathname.startsWith('/ws');
       return !shouldSkip;
     },
-  autoRewrite: true,
-  preserveHeaderKeyCase: true,
-  xfwd: true,
-});
+    autoRewrite: true,
+    preserveHeaderKeyCase: true,
+    xfwd: true,
+  });
+}

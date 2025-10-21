@@ -9,14 +9,17 @@ import { deleteFile } from "./tools/delete-file";
 import { grepTool } from "./tools/grep";
 import type { WSMessage } from 'agents';
 import type { SendMessagesParams } from "./ws-transport";
-import { google } from "@ai-sdk/google";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 export async function createAgent (message : WSMessage) {
+  const openrouter = createOpenRouter({
+    apiKey: Bun.env.OPENROUTER_API_KEY,
+  });
     try {
       const data = JSON.parse(message as string) as SendMessagesParams
       const result = streamText({
        messages: convertToModelMessages(data.messages),
-       model: google("gemini-2.5-flash-preview-09-2025"),
+       model: openrouter.chat("openai/gpt-5-mini"),
        stopWhen: stepCountIs(20), // Stop after 20 steps with tool calls
        system: SYSTEM_PROMPT,
        experimental_transform: smoothStream({
@@ -31,6 +34,7 @@ export async function createAgent (message : WSMessage) {
          deleteFile: deleteFile,
          grep: grepTool, 
         },
+        toolChoice: "required",
      });
     return result;
   } catch (error : any) {

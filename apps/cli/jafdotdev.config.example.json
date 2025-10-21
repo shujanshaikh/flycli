@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "jafdotdev configuration file example",
+  "port": 3100,
+  "appPort": 3000,
+  "autoPlugins": true,
+  "plugins": [],
+  "eddyMode": "default"
+}
+

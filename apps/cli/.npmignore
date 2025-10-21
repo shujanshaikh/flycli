@@ -1,0 +1,35 @@
+# Development files
+*.log
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Editor directories
+.vscode
+.idea
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+test
+
+# Source maps
+*.map
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node modules (will be installed by users)
+node_modules
+
+# Build artifacts
+dist
+build
+

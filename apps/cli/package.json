@@ -1,13 +1,43 @@
 {
-  "name": "@repo/cli",
+  "name": "jafdotdev",
+  "version": "0.1.0",
+  "description": "AI-powered development toolkit for Next.js applications",
   "module": "src/index.ts",
   "type": "module",
-  "private": true,
+  "private": false,
+  "bin": {
+    "jafdotdev": "./src/cli.ts"
+  },
+  "files": [
+    "src",
+    "toolbar",
+    "README.md",
+    "GETTING_STARTED.md",
+    "QUICK_REFERENCE.md",
+    "CHANGELOG.md",
+    "jafdotdev.config.example.json"
+  ],
+  "keywords": [
+    "nextjs",
+    "ai",
+    "development",
+    "toolbar",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/jafdotdev.git"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "scripts": {
-    "dev": "bun run src/index.ts"
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/cli.ts --outdir dist --target bun",
+    "build:toolbar": "cd ../toolbar && bun run build",
+    "prepublishOnly": "bun run build:toolbar"
   },
   "exports": {
     "./cli": "./src/ws-server.ts"

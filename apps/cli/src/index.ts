@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from "express";
-import { DEV_PORT, PORT, proxy } from "./proxy";
+import { createProxyMiddleware } from "./proxy.js";
 import { fileURLToPath } from "bun";
 import { dirname, resolve } from "node:path";
 import { createServer } from "node:http";
@@ -7,83 +7,117 @@ import { readFileSync } from "node:fs";
 import { WebSocketServer } from "ws";
 import { createAgent } from "@repo/agent/agent";
 import type { WSMessage } from 'agents';
-import { WebSocket } from "ws";
-import type { SendMessagesParams } from "../../agent/ws-transport";
-import { smoothStream, stepCountIs , convertToModelMessages , streamText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { google } from "@ai-sdk/google";
+import chalk from "chalk";
+import {
+  port as cliPort,
+  appPort as cliAppPort,
+  workspace,
+  verbose,
+  silent,
+} from "./config/parser.js";
 
-const app = express();
-const server = createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+export async function startServer() {
+  // Default ports
+  const DEV_PORT = cliPort || 3100;
+  const APP_PORT = cliAppPort || 3000;
 
-app.use(proxy);
+  if (verbose) {
+    console.log(chalk.blue(`Starting jafdotdev...`));
+    console.log(chalk.gray(`Workspace: ${workspace}`));
+    console.log(chalk.gray(`Proxy port: ${DEV_PORT}`));
+    console.log(chalk.gray(`App port: ${APP_PORT}`));
+  }
 
-app.use(express.json());
+  const app = express();
+  const server = createServer(app);
+  const wss = new WebSocketServer({ server, path: '/agent' });
+
+  // Create proxy with dynamic port
+  const proxy = createProxyMiddleware(APP_PORT);
+  app.use(proxy);
+
+  app.use(express.json());
+
+  const _dirname = dirname(fileURLToPath(import.meta.url));
+
+  // Set up basic middleware and static routes
+  // Try to find toolbar in multiple possible locations
+  const possibleToolbarPaths = [
+    resolve(_dirname, '../../toolbar/dist'), // Local development
+    resolve(_dirname, '../toolbar/dist'),    // When published as npm package
+    resolve(_dirname, 'toolbar/dist'),       // Alternative package structure
+  ];
+  
+  const toolbarPath = possibleToolbarPaths.find((path) => {
+    try {
+      return Bun.file(resolve(path, 'index.html')).size > 0;
+    } catch {
+      return false;
+    }
+  }) || possibleToolbarPaths[0];
+
+  if (verbose) {
+    console.log(chalk.gray(`Toolbar path: ${toolbarPath}`));
+  }
+
+  // Serve React app static assets
+  app.use('/assets', express.static(resolve(toolbarPath!, 'assets')));
+
+  // Serve the main React toolbar app
+  app.get('/{*splat}', (req: Request, res: Response) => {
+      // Read the React toolbar HTML
+      const toolbarHtml = readFileSync(
+        resolve(toolbarPath!, 'index.html'),
+        'utf-8'
+      );
+
+      res.send(toolbarHtml);
+    });
+
+  app.disable('x-powered-by');
 
 
-const _dirname = dirname(fileURLToPath(import.meta.url));
-
-// Set up basic middleware and static routes
-const toolbarPath = Bun.env.NODE_ENV === 'production'
-    ? resolve(_dirname, '../../toolbar/dist')
-    : resolve(_dirname, '../../toolbar/dist');
-
-// Serve React app static assets
-app.use('/assets', express.static(resolve(toolbarPath, 'assets')));
-
-// Serve the main React toolbar app
-app.get('/{*splat}', (req: Request, res: Response) => {
-    // Read the React toolbar HTML
-    const toolbarHtml = readFileSync(
-      resolve(toolbarPath, 'index.html'),
-      'utf-8'
-    );
-
-    res.send(toolbarHtml);
-  });
-
-app.disable('x-powered-by');
-
-
-const openrouter = createOpenRouter({
-  apiKey: Bun.env.OPENROUTER_API_KEY,
-});
-
-
-wss.on('connection', (ws) => {
-    console.log('Client connected');
-
-    ws.on('message', async (message: WSMessage) => {
-      try {
-        const result = await createAgent(message);
-        for await (const chunk of result.toUIMessageStream()) {
-          //console.log(chunk)
-          ws.send(JSON.stringify(chunk));
-        }
-      } catch (error) {
-        console.error('Error handling message:', error);
-        ws.send(JSON.stringify({
-          type: 'error',
-          message: 'Error creating agent',
-          error: (error as Error).message,
-        }));
-        ws.close();
+  wss.on('connection', (ws) => {
+      if (verbose) {
+        console.log(chalk.green('Client connected'));
       }
+
+      ws.on('message', async (message: WSMessage) => {
+        try {
+          const result = await createAgent(message);
+          for await (const chunk of result.toUIMessageStream()) {
+            ws.send(JSON.stringify(chunk));
+          }
+        } catch (error) {
+          console.error('Error handling message:', error);
+          ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Error creating agent',
+            error: (error as Error).message,
+          }));
+          ws.close();
+        }
+      });
+
+      ws.on('close', () => {
+        if (verbose) {
+          console.log(chalk.yellow('Client disconnected'));
+        }
+      });
     });
 
-    ws.on('close', () => {
-      console.log('Client disconnected');
-    });
+  server.listen(DEV_PORT, () => {
+      if (!silent) {
+        console.log(chalk.green.bold(`\n✓ jafdotdev is running!\n`));
+        console.log(chalk.cyan(`  → Toolbar: http://localhost:${DEV_PORT}`));
+        console.log(chalk.cyan(`  → Proxying: http://localhost:${APP_PORT}`));
+        console.log(chalk.gray(`\n  Make sure your Next.js app is running on port ${APP_PORT}\n`));
+      }
   });
+}
 
-
-
-// server.on("upgrade", (_req, socket, head) => {
-
-// })
-
-
-server.listen(DEV_PORT, () => {
-    console.log(`Server is running on port ${DEV_PORT}`);
-});
+// If this file is run directly, start the server
+if (import.meta.main) {
+  startServer();
+}
