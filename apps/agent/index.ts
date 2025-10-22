@@ -1,4 +1,3 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { streamText , convertToModelMessages , stepCountIs , smoothStream} from "ai"
 import { SYSTEM_PROMPT } from "./prompt";
 import { editFiles } from "./tools/edit-files";
@@ -34,7 +33,8 @@ export async function createAgent (message : WSMessage) {
          deleteFile: deleteFile,
          grep: grepTool, 
         },
-        toolChoice: "required",
+       // temperature : 0.1,
+        //toolChoice: "required",
      });
     return result;
   } catch (error : any) {

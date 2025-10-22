@@ -449,6 +449,11 @@ export type PromptInputProps = Omit<
     message: PromptInputMessage,
     event: FormEvent<HTMLFormElement>
   ) => void | Promise<void>;
+  /**
+   * Optional className applied directly to the inner InputGroup container.
+   * Useful for customizing background, borders, focus rings, etc.
+   */
+  inputGroupClassName?: string;
 };
 
 export const PromptInput = ({
@@ -462,6 +467,7 @@ export const PromptInput = ({
   onError,
   onSubmit,
   children,
+  inputGroupClassName,
   ...props
 }: PromptInputProps) => {
   // Try to use a provider controller if present
@@ -765,7 +771,7 @@ export const PromptInput = ({
         onSubmit={handleSubmit}
         {...props}
       >
-        <InputGroup>{children}</InputGroup>
+        <InputGroup className={inputGroupClassName}>{children}</InputGroup>
       </form>
     </>
   );

@@ -55,7 +55,7 @@ export const MessageContent = ({
   ...props
 }: MessageContentProps) => (
   <div
-    className={cn(messageContentVariants({ variant, className }))}
+    className={cn(messageContentVariants({ variant }), className)}
     {...props}
   >
     {children}
