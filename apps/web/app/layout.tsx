@@ -4,8 +4,6 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const _inter = Inter({ subsets: ["latin"] })
-
 export const metadata: Metadata = {
   title: "flycli",
   description: "Your ai coding agent, that lives in your browser",
@@ -26,7 +24,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-        {children}
+          {children}
         </ThemeProvider>
       </body>
     </html>
