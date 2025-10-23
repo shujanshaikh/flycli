@@ -19,7 +19,7 @@ export async function createAgent (message : WSMessage) {
       const data = JSON.parse(message as string) as SendMessagesParams
       const result = streamText({
        messages: convertToModelMessages(data.messages),
-       model: openrouter.chat("openai/gpt-5-mini"),
+       model: openrouter.chat("openai/gpt-5"),
        stopWhen: stepCountIs(20), // Stop after 20 steps with tool calls
        system: SYSTEM_PROMPT,
        experimental_transform: smoothStream({

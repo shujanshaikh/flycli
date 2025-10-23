@@ -1,5 +1,5 @@
 {
-  "name": "jafdotdev",
+  "name": "flycli",
   "private": true,
   "scripts": {
     "build": "turbo run build",

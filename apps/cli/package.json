@@ -1,12 +1,12 @@
 {
-  "name": "jafdotdev",
+  "name": "flycli",
   "version": "0.1.0",
-  "description": "AI-powered development toolkit for Next.js applications",
+  "description": "Your ai coding agent, that lives in your browser",
   "module": "src/index.ts",
   "type": "module",
   "private": false,
   "bin": {
-    "jafdotdev": "./src/cli.ts"
+    "flycli": "./src/cli.ts"
   },
   "files": [
     "src",
@@ -15,7 +15,7 @@
     "GETTING_STARTED.md",
     "QUICK_REFERENCE.md",
     "CHANGELOG.md",
-    "jafdotdev.config.example.json"
+    "flycli.config.example.json"
   ],
   "keywords": [
     "nextjs",
@@ -28,7 +28,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/jafdotdev.git"
+    "url": "https://github.com/yourusername/flycli.git"
   },
   "devDependencies": {
     "@types/bun": "latest"

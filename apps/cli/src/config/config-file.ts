@@ -3,10 +3,10 @@ import { resolve } from 'node:path';
 import type { ConfigFile } from './types.js';
 
 const CONFIG_FILE_NAMES = [
-  'jafdotdev.config.json',
-  'jafdotdev.config.js',
-  '.jafdotdevrc',
-  '.jafdotdevrc.json',
+  'flycli.config.json',
+  'flycli.config.js',
+  '.flyclirc',
+  '.flyclirc.json',
 ];
 
 export function findConfigFile(directory: string): string | null {

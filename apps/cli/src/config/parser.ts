@@ -26,17 +26,17 @@ let commandExecuted: string | undefined;
 let telemetrySubcommand: string | undefined;
 
 program
-    .name('jafdotdev')
-    .description('Jafdotdev is a tool for building websites with AI')
-    .version('0.0.1')
+    .name('flycli')
+    .description('flycli is a tool for building websites with AI')
+    .version('0.1.0')
     .option<number>(
         '-p, --port [port]',
-        'The port on which the jafdotdev-wrapped app will run',
+        'The port on which the flycli-wrapped app will run',
         myParseInt,
     )
     .option<number>(
         '-a, --app-port <app-port>',
-        'The port of the developed app that jafdotdev will wrap with the toolbar',
+        'The port of the developed app that flycli will wrap with the toolbar',
         myParseInt,
     )
     .option<string>(
@@ -53,7 +53,7 @@ program
 // Add telemetry command with subcommands
 const telemetryCommand = program
     .command('telemetry')
-    .description('Manage telemetry settings for Jafdotdev CLI');
+    .description('Manage telemetry settings for flycli CLI');
 
 telemetryCommand
     .command('status')
@@ -82,18 +82,18 @@ program.action(() => {
 const rawArgs = program.args.slice(2);
 
 const doubleDashIndex = rawArgs.indexOf('--');
-let jafdotdevArgs = rawArgs
+let flycliArgs = rawArgs
 let wrappedCommand: string[] = [];
 let hasWrappedCommand = false;
 
 
 if (doubleDashIndex !== -1) {
     hasWrappedCommand = true;
-    jafdotdevArgs = rawArgs.slice(0, doubleDashIndex);
+    flycliArgs = rawArgs.slice(0, doubleDashIndex);
     wrappedCommand = rawArgs.slice(doubleDashIndex + 1);
 }
 
-const hasBridgeMode = jafdotdevArgs.includes('-b');
+const hasBridgeMode = flycliArgs.includes('-b');
 
 // Validate bridge mode conflicts before parsing (to avoid path validation)
 if (hasBridgeMode) {
@@ -103,7 +103,7 @@ if (hasBridgeMode) {
     process.exit(1);
 }
 
-program.parse([...process.argv.slice(0, 2), ...jafdotdevArgs]);
+program.parse([...process.argv.slice(0, 2), ...flycliArgs]);
 
 let port: number | undefined;
 let appPort: number | undefined;
