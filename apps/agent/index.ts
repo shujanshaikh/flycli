@@ -9,6 +9,7 @@ import { grepTool } from "./tools/grep";
 import type { WSMessage } from 'agents';
 import type { SendMessagesParams } from "./ws-transport";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { searchReplace } from "./tools/search-replace";
 
 export async function createAgent (message : WSMessage) {
   const openrouter = createOpenRouter({
@@ -32,6 +33,7 @@ export async function createAgent (message : WSMessage) {
          glob: globTool,
          deleteFile: deleteFile,
          grep: grepTool, 
+         searchReplace: searchReplace,
         },
        // temperature : 0.1,
         //toolChoice: "required",
