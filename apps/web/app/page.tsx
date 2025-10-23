@@ -3,7 +3,7 @@
 export default function Home() {
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-black text-foreground transition-colors duration-300 flex flex-col">
 
 
       <main className="flex-1 flex items-center justify-center pt-20 pb-20">
@@ -24,7 +24,7 @@ export default function Home() {
           </div>
 
           <div className="relative inline-block font-semibold text-2xl overflow-hidden -skew-x-6">
-            <span className="animate-shimmer-text bg-gradient-to-r from-foreground via-pink-500 via-pink-600 to-foreground bg-[length:200%_100%] bg-clip-text text-transparent drop-shadow-lg opacity-80">
+            <span className="animate-shimmer-text bg-gradient-to-r from-zinc-500 via-zinc-600 to-zinc-500 bg-[length:200%_100%] bg-clip-text text-transparent drop-shadow-lg opacity-80">
               Coming Soon
             </span>
           </div>
