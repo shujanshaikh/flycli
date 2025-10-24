@@ -24,7 +24,7 @@ import { Message, MessageContent } from '@/components/ai-elements/message';
 import { Response } from '@/components/ai-elements/response';
 import { WebsocketChatTransport } from '../../agent/ws-transport';
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
-import { ChevronDown, ChevronUp, GripVertical, Minimize2, Maximize2, ArrowUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowUp, SquareIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-elements/reasoning';
 
@@ -96,7 +96,7 @@ const Chat = () => {
     url: 'http://localhost:3100/agent',
   });
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status  } = useChat({
     onFinish: () => setLoading(false),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     transport,
@@ -136,21 +136,23 @@ const Chat = () => {
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,
-            width: '400px',
+            width: '420px',
+            height: '520px',
             zIndex: 1000,
             cursor: isDragging ? 'grabbing' : 'default'
           }}
         >
-          <div className="flex flex-col bg-background/80 backdrop-blur-xl rounded-4xl  shadow-lg overflow-hidden">
+          <div className="flex flex-col bg-background/90 rounded-3xl border border-border/60 shadow-sm overflow-hidden">
             <div
-              className="flex items-center justify-between px-4 py-2 bg-muted/40 border-b border-border cursor-grab active:cursor-grabbing"
+              className="flex items-center justify-between px-3 py-1.5 bg-background/80 border-b border-border/60 cursor-grab active:cursor-grabbing"
               onMouseDown={handleMouseDown}
             >
-              {/* <div className="flex items-center gap-2">
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">jaffy</span>
-            </div> */}
-              <div className="flex items-center gap-1 bg-pink-500/10 rounded-full p-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 flycli-text text-pink-300 text-xs font-semibold tracking-wide">
+                  flycli
+                </span>
+              </div>
+              <div className="flex items-center gap-1 rounded-full">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -163,15 +165,15 @@ const Chat = () => {
             </div>
 
             {!isCollapsed && (
-              <div className="flex flex-col p-4 bg-background/60" style={{ height: '400px' }}>
+              <div className="flex flex-col p-3 bg-background/60" style={{ height: '460px' }}>
                 <Conversation>
                   <ConversationContent>
                     {messages.map((message) => (
                       <Message from={message.role} key={message.id}>
                         <MessageContent
-                          className="rounded-3xl border shadow-sm backdrop-blur-sm transition-colors
-                          group-[.is-user]:bg-pink-500/20 group-[.is-user]:border-pink-500/30 group-[.is-user]:text-pink-50
-                          group-[.is-assistant]:bg-white/5 group-[.is-assistant]:border-white/10 group-[.is-assistant]:text-foreground"
+                          className="rounded-2xl border border-border/60 bg-background/50 transition-colors
+                          group-[.is-user]:rounded-3xl group-[.is-user]:bg-pink-700/30 group-[.is-user]:border-pink-700/40 group-[.is-user]:text-foreground
+                          group-[.is-assistant]:bg-transparent group-[.is-assistant]:border-border/60 group-[.is-assistant]:text-foreground"
                         >
                           {message.parts.map((part, i) => {
                             switch (part.type) {
@@ -192,23 +194,30 @@ const Chat = () => {
                                     <ReasoningContent>{part.text}</ReasoningContent>
                                   </Reasoning>
                                 );
-                              default:
-                                return null;
+                              // default:
+                              //   return null;
                             }
                           })}
                         </MessageContent>
                       </Message>
                     ))}
+                    
+                   
+                    {status === 'submitted' && (
+                      <div className="px-2">
+                        <span className="thinking-text text-sm">flycli is thinking...</span>
+                      </div>
+                    )}
                   </ConversationContent>
                   <ConversationScrollButton />
                 </Conversation>
 
                 <PromptInput
                   onSubmit={handleSubmit}
-                  className="mt-2"
+                 // className="mt-2"
                   globalDrop
                   multiple
-                  inputGroupClassName="rounded-4xl border-pink-500/20 bg-pink-500/10 backdrop-blur-md shadow-sm transition focus-within:ring-2 focus-within:ring-pink-500/30 focus-within:border-pink-500/40 hover:shadow-md"
+                  inputGroupClassName="rounded-full border border-border/50 bg-background/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-sm transition focus-within:ring-2 focus-within:ring-pink-500/40 focus-within:border-pink-500/40 focus-within:ring-offset-2 focus-within:ring-offset-background"
                 >
                   <PromptInputBody>
                     {/* <PromptInputAttachments>
@@ -220,7 +229,7 @@ const Chat = () => {
                       value={text}
                       rows={1}
                       placeholder='Ask me anything...'
-                      className="min-h-10 max-h-36 py-2 text-foreground placeholder:text-muted-foreground caret-pink-400 selection:bg-pink-500/20"
+                      className="min-h-10 max-h-32 py-3 pl-4 pr-10 rounded-full text-foreground placeholder:text-muted-foreground/80 caret-pink-400 selection:bg-pink-500/20"
                     />
                   </PromptInputBody>
                   <PromptInputFooter className="py-1">
@@ -238,12 +247,12 @@ const Chat = () => {
                     <PromptInputSubmit
                       size="icon-sm"
                       variant="ghost"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 size-9 rounded-full border border-pink-500/40 bg-pink-500 text-white shadow-md hover:bg-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full text-pink-500 hover:text-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={!text && !loading}
-                      status={status === 'streaming' ? 'streaming' : undefined}
+                      status={status}
                       aria-label="Send message"
                     >
-                      <ArrowUp className="size-5" />
+                      {status === 'streaming' ? <SquareIcon className="size-5" /> : <ArrowUp className="size-5" />}
                     </PromptInputSubmit>
                   </PromptInputFooter>
                 </PromptInput>

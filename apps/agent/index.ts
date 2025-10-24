@@ -8,18 +8,20 @@ import { deleteFile } from "./tools/delete-file";
 import { grepTool } from "./tools/grep";
 import type { WSMessage } from 'agents';
 import type { SendMessagesParams } from "./ws-transport";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { searchReplace } from "./tools/search-replace";
+import {createOpenAI} from "@ai-sdk/openai";
 
 export async function createAgent (message : WSMessage) {
-  const openrouter = createOpenRouter({
-    apiKey: Bun.env.OPENROUTER_API_KEY,
+  
+  const openai = createOpenAI({
+    apiKey: Bun.env.OPENAI_API_KEY,
+    baseURL : "https://api.z.ai/api/coding/paas/v4",
   });
     try {
       const data = JSON.parse(message as string) as SendMessagesParams
       const result = streamText({
        messages: convertToModelMessages(data.messages),
-       model: openrouter.chat("openai/gpt-5"),
+       model: openai.chat("glm-4.6"),
        stopWhen: stepCountIs(20), // Stop after 20 steps with tool calls
        system: SYSTEM_PROMPT,
        experimental_transform: smoothStream({
@@ -35,8 +37,8 @@ export async function createAgent (message : WSMessage) {
          grep: grepTool, 
          searchReplace: searchReplace,
         },
-       // temperature : 0.1,
-        //toolChoice: "required",
+        //temperature : 0.1,
+       // toolChoice: "required",
      });
     return result;
   } catch (error : any) {
