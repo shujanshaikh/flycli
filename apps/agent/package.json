@@ -8,7 +8,7 @@
   },
   "exports": {
     "./agent": "./index.ts",
-    "./tool": "."
+    "./tools/*": "./tools/*.js"
   },
   "peerDependencies": {
     "typescript": "^5"

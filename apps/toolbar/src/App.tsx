@@ -22,11 +22,14 @@ import {
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent } from '@/components/ai-elements/message';
 import { Response } from '@/components/ai-elements/response';
+import { ToolRenderer } from '@/components/ToolRenderer';
 import { WebsocketChatTransport } from '../../agent/ws-transport';
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import { ChevronDown, ChevronUp, ArrowUp, SquareIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-elements/reasoning';
+import { Shimmer } from './components/ai-elements/shimmer';
+import type { ChatMessage } from '@/lib/types';
 
 const Chat = () => {
   const [text, setText] = useState<string>('');
@@ -96,7 +99,7 @@ const Chat = () => {
     url: 'http://localhost:3100/agent',
   });
 
-  const { messages, sendMessage, status  } = useChat({
+  const { messages, sendMessage, status  } = useChat<ChatMessage>({
     onFinish: () => setLoading(false),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     transport,
@@ -194,8 +197,21 @@ const Chat = () => {
                                     <ReasoningContent>{part.text}</ReasoningContent>
                                   </Reasoning>
                                 );
-                              // default:
-                              //   return null;
+                              default: {
+                                if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
+                                  const toolPart = part as any;
+                                  return (
+                                    <ToolRenderer
+                                      key={`${message.id}-${i}`}
+                                      toolType={toolPart.type}
+                                      state={toolPart.state}
+                                      output={toolPart.output}
+                                      errorText={toolPart.errorText}
+                                    />
+                                  );
+                                }
+                                return null;
+                              }
                             }
                           })}
                         </MessageContent>
@@ -205,7 +221,7 @@ const Chat = () => {
                    
                     {status === 'submitted' && (
                       <div className="px-2">
-                        <span className="thinking-text text-sm">flycli is thinking...</span>
+                       <Shimmer className='text-sm' duration={1}>flycli is thinking...</Shimmer>
                       </div>
                     )}
                   </ConversationContent>
