@@ -25,8 +25,7 @@ import { Response } from '@/components/ai-elements/response';
 import { ToolRenderer } from '@/components/ToolRenderer';
 import { WebsocketChatTransport } from '../../agent/ws-transport';
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
-import { ChevronDown, ChevronUp, ArrowUp, SquareIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowUp, SquareIcon, MessageCircleDashed } from 'lucide-react';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-elements/reasoning';
 import { Shimmer } from './components/ai-elements/shimmer';
 import type { ChatMessage } from '@/lib/types';
@@ -43,10 +42,17 @@ const Chat = () => {
 
   const handleToolCall = useCallback((result: any) => { console.log('result', result); }, []);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     // Prevent dragging if clicking on interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="button"]')) {
+    if (
+      target.closest('button') || 
+      target.closest('[role="button"]') || 
+      target.closest('textarea') || 
+      target.closest('input') ||
+      target.closest('[role="textbox"]') ||
+      target.closest('a')
+    ) {
       return;
     }
 
@@ -92,6 +98,19 @@ const Chat = () => {
       };
     }
   }, [isDragging, dragOffset]);
+
+  // Add keyboard shortcut for cmd + k
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCollapsed(!isCollapsed);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCollapsed]);
 
   const transport = new WebsocketChatTransport({
     agent: 'agent',
@@ -139,36 +158,34 @@ const Chat = () => {
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,
-            width: '420px',
-            height: '520px',
+            width: isCollapsed ? '56px' : '420px',
+            height: isCollapsed ? '56px' : '520px',
             zIndex: 1000,
             cursor: isDragging ? 'grabbing' : 'default'
           }}
         >
           <div className="flex flex-col bg-background/90 rounded-3xl border border-border/60 shadow-sm overflow-hidden">
-            <div
-              className="flex items-center justify-between px-3 py-1.5 bg-background/80 border-b border-border/60 cursor-grab active:cursor-grabbing"
-              onMouseDown={handleMouseDown}
-            >
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 flycli-text text-pink-300 text-xs font-semibold tracking-wide">
-                  flycli
-                </span>
-              </div>
-              <div className="flex items-center gap-1 rounded-full">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => setIsCollapsed(!isCollapsed)}
+            {isCollapsed ? (
+              <div
+                onMouseDown={handleMouseDown}
+                className="flex items-center justify-center w-14 h-14 cursor-grab active:cursor-grabbing hover:bg-background/80 transition-colors"
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCollapsed(false);
+                  }}
+                  className="flex items-center justify-center"
                 >
-                  {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
+                  <MessageCircleDashed className="w-6 h-6 text-pink-400" />
+                </button>
               </div>
-            </div>
-
-            {!isCollapsed && (
-              <div className="flex flex-col p-3 bg-background/60" style={{ height: '460px' }}>
+            ) : (
+              <div 
+                className="flex flex-col p-3 bg-background/60 cursor-grab active:cursor-grabbing" 
+                style={{ height: '460px' }}
+                onMouseDown={handleMouseDown}
+              >
                 <Conversation>
                   <ConversationContent>
                     {messages.map((message) => (
@@ -233,7 +250,7 @@ const Chat = () => {
                  // className="mt-2"
                   globalDrop
                   multiple
-                  inputGroupClassName="rounded-full border border-border/50 bg-background/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-sm transition focus-within:ring-2 focus-within:ring-pink-500/40 focus-within:border-pink-500/40 focus-within:ring-offset-2 focus-within:ring-offset-background"
+                  inputGroupClassName="border border-border/50 bg-background/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-sm transition focus-within:ring-2 focus-within:ring-pink-500/40 focus-within:border-pink-500/40 focus-within:ring-offset-2 focus-within:ring-offset-background"
                 >
                   <PromptInputBody>
                     {/* <PromptInputAttachments>
@@ -245,7 +262,7 @@ const Chat = () => {
                       value={text}
                       rows={1}
                       placeholder='Ask me anything...'
-                      className="min-h-10 max-h-32 py-3 pl-4 pr-10 rounded-full text-foreground placeholder:text-muted-foreground/80 caret-pink-400 selection:bg-pink-500/20"
+                      className="min-h-10 max-h-32 py-3 pl-4 pr-10 text-foreground placeholder:text-muted-foreground/80 caret-pink-400 selection:bg-pink-500/20"
                     />
                   </PromptInputBody>
                   <PromptInputFooter className="py-1">
