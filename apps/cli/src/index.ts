@@ -15,6 +15,7 @@ import {
   verbose,
   silent,
 } from "./config/parser.js";
+import { getFiles } from "./utils/get-files.js";
 
 export async function startServer() {
   // Default ports
@@ -47,7 +48,7 @@ export async function startServer() {
     resolve(_dirname, '../toolbar/dist'),    // When published as npm package
     resolve(_dirname, 'toolbar/dist'),       // Alternative package structure
   ];
-  
+
   const toolbarPath = possibleToolbarPaths.find((path) => {
     try {
       return Bun.file(resolve(path, 'index.html')).size > 0;
@@ -65,54 +66,61 @@ export async function startServer() {
 
   // Serve the main React toolbar app
   app.get('/{*splat}', (req: Request, res: Response) => {
-      // Read the React toolbar HTML
-      const toolbarHtml = readFileSync(
-        resolve(toolbarPath!, 'index.html'),
-        'utf-8'
-      );
+    // Read the React toolbar HTML
+    const toolbarHtml = readFileSync(
+      resolve(toolbarPath!, 'index.html'),
+      'utf-8'
+    );
 
-      res.send(toolbarHtml);
-    });
+    res.send(toolbarHtml);
+  });
 
   app.disable('x-powered-by');
 
 
   wss.on('connection', (ws) => {
-      if (verbose) {
-        console.log(chalk.green('Client connected'));
+    if (verbose) {
+      console.log(chalk.green('Client connected'));
+    }
+
+    ws.on('message', async (message: WSMessage) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        if (data.type === 'list-files') {
+          const files = getFiles(process.cwd());
+          ws.send(JSON.stringify({ type: "file_list", files }));
+          return;
+        }
+        
+        const result = await createAgent(message);
+        for await (const chunk of result.toUIMessageStream()) {
+          ws.send(JSON.stringify(chunk));
+        }
+      } catch (error) {
+        console.error('Error handling message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Error handling message',
+          error: (error as Error).message,
+        }));
       }
-
-      ws.on('message', async (message: WSMessage) => {
-        try {
-          const result = await createAgent(message);
-          for await (const chunk of result.toUIMessageStream()) {
-            ws.send(JSON.stringify(chunk));
-          }
-        } catch (error) {
-          console.error('Error handling message:', error);
-          ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Error creating agent',
-            error: (error as Error).message,
-          }));
-          ws.close();
-        }
-      });
-
-      ws.on('close', () => {
-        if (verbose) {
-          console.log(chalk.yellow('Client disconnected'));
-        }
-      });
     });
 
-  server.listen(DEV_PORT, () => {
-      if (!silent) {
-        console.log(chalk.green.bold(`\n✓ flycli is running!\n`));
-        console.log(chalk.cyan(`  → Toolbar: http://localhost:${DEV_PORT}`));
-        console.log(chalk.cyan(`  → Proxying: http://localhost:${APP_PORT}`));
-        console.log(chalk.gray(`\n  Make sure your Next.js app is running on port ${APP_PORT}\n`));
+    ws.on('close', () => {
+      if (verbose) {
+        console.log(chalk.yellow('Client disconnected'));
       }
+    });
+  });
+
+  server.listen(DEV_PORT, () => {
+    if (!silent) {
+      console.log(chalk.green.bold(`\n✓ flycli is running!\n`));
+      console.log(chalk.cyan(`  → Toolbar: http://localhost:${DEV_PORT}`));
+      console.log(chalk.cyan(`  → Proxying: http://localhost:${APP_PORT}`));
+      console.log(chalk.gray(`\n  Make sure your Next.js app is running on port ${APP_PORT}\n`));
+    }
   });
 }
 
