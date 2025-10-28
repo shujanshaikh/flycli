@@ -19,9 +19,10 @@ export async function createAgent (message : WSMessage) {
   });
     try {
       const data = JSON.parse(message as string) as SendMessagesParams
+      const model = (data.body as { model?: string } | undefined)?.model ?? "glm-4.6";
       const result = streamText({
        messages: convertToModelMessages(data.messages),
-       model: openai.chat("glm-4.6"),
+       model: openai.chat(model),
        stopWhen: stepCountIs(20), // Stop after 20 steps with tool calls
        system: SYSTEM_PROMPT,
        experimental_transform: smoothStream({

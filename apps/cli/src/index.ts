@@ -92,7 +92,10 @@ export async function startServer() {
           ws.send(JSON.stringify({ type: "file_list", files }));
           return;
         }
-        
+        // if (data.type === 'get-model') {
+        //   ws.send(JSON.stringify({ type: "model", model: data.body.model }));
+        //   return;
+        // }
         const result = await createAgent(message);
         for await (const chunk of result.toUIMessageStream()) {
           ws.send(JSON.stringify(chunk));

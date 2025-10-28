@@ -6,6 +6,11 @@ import {
   PromptInputBody,
   PromptInputFooter,
   type PromptInputMessage,
+  PromptInputModelSelect,
+  PromptInputModelSelectContent,
+  PromptInputModelSelectItem,
+  PromptInputModelSelectTrigger,
+  PromptInputModelSelectValue,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
@@ -27,8 +32,12 @@ import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-e
 import { Shimmer } from './components/ai-elements/shimmer';
 import type { ChatMessage } from '@/lib/types';
 import { FileMention } from './components/file-mention';
+import { models } from './lib/models';
 
 const Chat = () => {
+
+
+
   const [text, setText] = useState<string>('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(false);
@@ -40,15 +49,17 @@ const Chat = () => {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showMentionPopover, setShowMentionPopover] = useState(false);
   const mentionPopoverRef = useRef<HTMLDivElement>(null);
+  const [model, setModel] = useState<string>(models[0].id);
+
 
 
   const handleMouseDown = (e: React.MouseEvent) => {
     // Prevent dragging if clicking on interactive elements
     const target = e.target as HTMLElement;
     if (
-      target.closest('button') || 
-      target.closest('[role="button"]') || 
-      target.closest('textarea') || 
+      target.closest('button') ||
+      target.closest('[role="button"]') ||
+      target.closest('textarea') ||
       target.closest('input') ||
       target.closest('[role="textbox"]') ||
       target.closest('a')
@@ -114,16 +125,16 @@ const Chat = () => {
 
   const transport = new WebsocketChatTransport({
     agent: 'agent',
-    toolCallCallback: () => {},
+    toolCallCallback: () => { },
     url: 'http://localhost:3100/agent',
   });
 
-  const { messages, sendMessage, status  } = useChat<ChatMessage>({
+  const { messages, sendMessage, status } = useChat<ChatMessage>({
     onFinish: () => setLoading(false),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     transport,
   });
- 
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
@@ -134,7 +145,7 @@ const Chat = () => {
     const atIndex = textBeforeCursor.lastIndexOf('@');
     const lastCharBeforeCursor = textBeforeCursor[textBeforeCursor.length - 1];
     const isLastCharSpace = lastCharBeforeCursor === ' ' || lastCharBeforeCursor === '\n';
-    
+
     if (atIndex !== -1 && !isLastCharSpace && textBeforeCursor.slice(atIndex + 1).indexOf(' ') === -1) {
       setShowMentionPopover(true);
     } else {
@@ -144,13 +155,13 @@ const Chat = () => {
 
   const handleCursorPositionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCursorPosition(e.target.selectionStart);
-    
+
     // Check if cursor is after an @ symbol
     const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart);
     const atIndex = textBeforeCursor.lastIndexOf('@');
     const lastCharBeforeCursor = textBeforeCursor[textBeforeCursor.length - 1];
     const isLastCharSpace = lastCharBeforeCursor === ' ' || lastCharBeforeCursor === '\n';
-    
+
     if (atIndex !== -1 && !isLastCharSpace && textBeforeCursor.slice(atIndex + 1).indexOf(' ') === -1) {
       setShowMentionPopover(true);
     } else {
@@ -161,13 +172,13 @@ const Chat = () => {
   const handleFileSelect = (file: string) => {
     const textBeforeCursor = text.slice(0, cursorPosition);
     const atIndex = textBeforeCursor.lastIndexOf('@');
-    
+
     if (atIndex !== -1) {
       const textAfterCursor = text.slice(cursorPosition);
       const newText = text.slice(0, atIndex) + `@${file} ` + textAfterCursor;
       setText(newText);
       setShowMentionPopover(false);
-      
+
       // Focus back on textarea and set cursor position
       setTimeout(() => {
         if (textareaRef.current) {
@@ -191,8 +202,12 @@ const Chat = () => {
     sendMessage(
       {
         text: message.text || 'Sent with attachments',
-        files: message.files
-      },
+        files: message.files,
+      }, {
+      body: {
+        model: model,
+      }
+    }
     );
     setText('');
   };
@@ -239,14 +254,16 @@ const Chat = () => {
             ) : (
               <>
                 {/* Top bar */}
-                <div 
+                <div
                   className="flex items-center justify-between px-3 py-2 bg-zinc-900 border-b border-zinc-800 cursor-grab active:cursor-grabbing"
                   onMouseDown={handleMouseDown}
                 >
-                  <span className="flex items-center gap-1 px-2 py-0.5 text-pink-300 text-xs font-semibold tracking-wide">
-                    <Rabbit className="size-4" />
-                    flycli
-                  </span>
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="flex items-center gap-1 px-2 py-0.5 text-pink-300 text-xs font-semibold tracking-wide">
+                      <Rabbit className="size-4" />
+                      flycli
+                    </span>
+                  </div>
                   <button
                     onClick={() => setIsCollapsed(true)}
                     className="text-zinc-400 hover:text-zinc-200 transition-colors"
@@ -255,139 +272,164 @@ const Chat = () => {
                   </button>
                 </div>
 
-              
-                <div 
-                  className="flex flex-col p-3 bg-background/60 cursor-grab active:cursor-grabbing" 
+
+                <div
+                  className="flex flex-col p-3 bg-background/60 cursor-grab active:cursor-grabbing"
                   style={{ height: '488px' }}
                   onMouseDown={handleMouseDown}
                 >
-              
-                <Conversation>
-                  <ConversationContent>
-                    {messages.map((message) => (
-                      <Message from={message.role} key={message.id}>
-                        <MessageContent
-                          className="rounded-xl bg-transparent transition-colors
+                  <div className="mb-2">
+                    <div className="flex items-center justify-end gap-2 rounded-lg">
+                      <PromptInputModelSelect
+                        onValueChange={(value) => {
+                          setModel(value);
+                        }}
+                        value={model}
+                      >
+                        <PromptInputModelSelectTrigger className="h-7 rounded-md px-2 text-[11px] bg-zinc-950/50 border border-zinc-800/80 text-zinc-300 hover:bg-zinc-900/70 hover:text-zinc-100 data-[state=open]:bg-zinc-900/80 focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500/30 rounded-none">
+                          <PromptInputModelSelectValue />
+                        </PromptInputModelSelectTrigger>
+                        <PromptInputModelSelectContent className="min-w-[160px] rounded-md bg-zinc-950/95 border border-zinc-800/80 text-zinc-200 shadow-lg backdrop-blur supports-[backdrop-filter]:backdrop-blur-md">
+                          {models.map((model) => (
+                            <PromptInputModelSelectItem
+                              key={model.id}
+                              value={model.id}
+                              className="text-xs px-2 py-1.5 hover:bg-pink-500/10 hover:text-zinc-100 focus:bg-pink-500/10 focus:text-zinc-100 data-[highlighted]:bg-pink-500/15 data-[highlighted]:text-zinc-100 data-[state=checked]:text-pink-400"
+                            >
+                              {model.name}
+                            </PromptInputModelSelectItem>
+                          ))}
+                        </PromptInputModelSelectContent>
+                      </PromptInputModelSelect>
+                    </div>
+                  </div>
+                  <Conversation>
+                    <ConversationContent>
+                      {messages.map((message) => (
+                        <Message from={message.role} key={message.id}>
+                          <MessageContent
+                            className="rounded-xl bg-transparent transition-colors
                           group-[.is-user]:rounded-lg group-[.is-user]:bg-zinc-800 group-[.is-user]:text-foreground
                           group-[.is-assistant]:bg-transparent group-[.is-assistant]:text-foreground"
-                        >
-                          {message.parts.map((part, i) => {
-                            switch (part.type) {
-                              case 'text':
-                                return (
-                                  <Response key={`${message.id}-${i}`} className="leading-relaxed">
-                                    {part.text}
-                                  </Response>
-                                );
-                              case 'reasoning':
-                                return (
-                                  <Reasoning
-                                    key={`${message.id}-${i}`}
-                                    className="w-full"
-                                    isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                                  >
-                                    <ReasoningTrigger />
-                                    <ReasoningContent>{part.text}</ReasoningContent>
-                                  </Reasoning>
-                                );
-                              default: {
-                                if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
-                                  const toolPart = part as any;
+                          >
+                            {message.parts.map((part, i) => {
+                              switch (part.type) {
+                                case 'text':
                                   return (
-                                    <ToolRenderer
-                                      key={`${message.id}-${i}`}
-                                      toolType={toolPart.type}
-                                      state={toolPart.state}
-                                      output={toolPart.output}
-                                      errorText={toolPart.errorText}
-                                    />
+                                    <Response key={`${message.id}-${i}`} className="leading-relaxed">
+                                      {part.text}
+                                    </Response>
                                   );
+                                case 'reasoning':
+                                  return (
+                                    <Reasoning
+                                      key={`${message.id}-${i}`}
+                                      className="w-full"
+                                      isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+                                    >
+                                      <ReasoningTrigger />
+                                      <ReasoningContent>{part.text}</ReasoningContent>
+                                    </Reasoning>
+                                  );
+                                default: {
+                                  if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
+                                    const toolPart = part as any;
+                                    return (
+                                      <ToolRenderer
+                                        key={`${message.id}-${i}`}
+                                        toolType={toolPart.type}
+                                        state={toolPart.state}
+                                        output={toolPart.output}
+                                        errorText={toolPart.errorText}
+                                      />
+                                    );
+                                  }
+                                  return null;
                                 }
-                                return null;
                               }
-                            }
-                          })}
-                        </MessageContent>
-                      </Message>
-                    ))}
-                    
-                   
-                    {status === 'submitted' && (
-                      <div className="px-2">
-                       <Shimmer className='text-sm' duration={1}>flycli is thinking...</Shimmer>
-                      </div>
-                    )}
-                  </ConversationContent>
-                  <ConversationScrollButton />
-                </Conversation>
+                            })}
+                          </MessageContent>
+                        </Message>
+                      ))}
 
-                <PromptInput
-                  onSubmit={handleSubmit}
-                 // className="mt-2"
-                  globalDrop
-                  multiple
-                  inputGroupClassName="bg-background/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-sm transition"
-                >
-                  <PromptInputBody>
-                    {/* <PromptInputAttachments>
+
+                      {status === 'submitted' && (
+                        <div className="px-2">
+                          <Shimmer className='text-sm' duration={1}>flycli is thinking...</Shimmer>
+                        </div>
+                      )}
+                    </ConversationContent>
+                    <ConversationScrollButton />
+                  </Conversation>
+
+                  <PromptInput
+                    onSubmit={handleSubmit}
+                    // className="mt-2"
+                    globalDrop
+                    multiple
+                    inputGroupClassName="bg-background/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-sm transition"
+                  >
+                    <PromptInputBody>
+                      
+                      {/* <PromptInputAttachments>
                     {(attachment) => <PromptInputAttachment data={attachment} />}
                   </PromptInputAttachments> */}
-                    <PromptInputTextarea
-                      onChange={handleTextChange}
-                      onSelect={handleCursorPositionChange}
-                      ref={textareaRef}
-                      value={text}
-                      rows={1}
-                     // placeholder='Ask me anything...'
-                      className="min-h-10 max-h-32 py-3 pl-4 pr-10 text-foreground placeholder:text-muted-foreground/80 caret-pink-400 selection:bg-pink-500/20"
-                    />
-                    {showMentionPopover && textareaRef.current && (
-                      <div
-                        ref={mentionPopoverRef}
-                        className="absolute"
-                        style={{
-                          bottom: '100%',
-                          left: '0',
-                          marginBottom: '4px',
-                        }}
-                      >
-                        <FileMention
-                          text={text}
-                          cursorPosition={cursorPosition}
-                          onFileSelect={handleFileSelect}
-                          onClose={() => setShowMentionPopover(false)}
-                        />
-                      </div>
-                    )}
-                  </PromptInputBody>
-                  <PromptInputFooter className="py-1">
-                    <PromptInputTools>
-                      <PromptInputActionMenu>
-                        {/* <PromptInputActionMenuTrigger
+                      <PromptInputTextarea
+                        onChange={handleTextChange}
+                        onSelect={handleCursorPositionChange}
+                        ref={textareaRef}
+                        value={text}
+                        rows={1}
+                        // placeholder='Ask me anything...'
+                        className="min-h-10 max-h-32 py-3 pl-4 pr-10 text-foreground placeholder:text-muted-foreground/80 caret-pink-400 selection:bg-pink-500/20"
+                      />
+                      {showMentionPopover && textareaRef.current && (
+                        <div
+                          ref={mentionPopoverRef}
+                          className="absolute"
+                          style={{
+                            bottom: '100%',
+                            left: '0',
+                            marginBottom: '4px',
+                          }}
+                        >
+                          <FileMention
+                            text={text}
+                            cursorPosition={cursorPosition}
+                            onFileSelect={handleFileSelect}
+                            onClose={() => setShowMentionPopover(false)}
+                          />
+                        </div>
+                      )}
+                    </PromptInputBody>
+                    <PromptInputFooter className="py-1">
+                      <PromptInputTools>
+                        <PromptInputActionMenu>
+                          {/* <PromptInputActionMenuTrigger
                         size="icon-xs"
                         className="text-pink-300 hover:bg-pink-500/20 hover:text-pink-50"
                       /> */}
-                        <PromptInputActionMenuContent>
-                          <PromptInputActionAddAttachments />
-                        </PromptInputActionMenuContent>
-                      </PromptInputActionMenu>
-                    </PromptInputTools>
-                    <PromptInputSubmit
-                      size="icon-sm"
-                      variant="ghost"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full text-pink-500 hover:text-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={!text && !loading}
-                      status={status}
-                      aria-label="Send message"
-                    >
-                      {status === 'streaming' ? <SquareIcon className="size-5" /> : <ArrowUp className="size-5" />}
-                    </PromptInputSubmit>
-                  </PromptInputFooter>
-                </PromptInput>
+                          <PromptInputActionMenuContent>
+                            <PromptInputActionAddAttachments />
+                          </PromptInputActionMenuContent>
+                        </PromptInputActionMenu>
+                      </PromptInputTools>
+                      <PromptInputSubmit
+                        size="icon-sm"
+                        variant="ghost"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full text-pink-500 hover:text-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!text && !loading}
+                        status={status}
+                        aria-label="Send message"
+                      >
+                        {status === 'streaming' ? <SquareIcon className="size-5" /> : <ArrowUp className="size-5" />}
+                      </PromptInputSubmit>
+                    </PromptInputFooter>
+                  </PromptInput>
                 </div>
 
-            
-                <div 
+
+                <div
                   className="flex items-center justify-center gap-8 px-3 py-2 bg-zinc-900 border-t border-zinc-800"
                 >
                   <div className="flex items-center gap-1.5 text-zinc-400 text-xs">
