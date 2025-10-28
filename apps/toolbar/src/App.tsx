@@ -6,15 +6,11 @@ import {
   PromptInputBody,
   PromptInputFooter,
   type PromptInputMessage,
-  PromptInputModelSelect,
-  PromptInputModelSelectContent,
-  PromptInputModelSelectItem,
-  PromptInputModelSelectTrigger,
-  PromptInputModelSelectValue,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
+import { ModelSelector } from '@/components/model-selector';
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
@@ -280,27 +276,13 @@ const Chat = () => {
                 >
                   <div className="mb-2">
                     <div className="flex items-center justify-end gap-2 rounded-lg">
-                      <PromptInputModelSelect
-                        onValueChange={(value) => {
-                          setModel(value);
-                        }}
-                        value={model}
-                      >
-                        <PromptInputModelSelectTrigger className="h-7 rounded-md px-2 text-[11px] bg-zinc-950/50 border border-zinc-800/80 text-zinc-300 hover:bg-zinc-900/70 hover:text-zinc-100 data-[state=open]:bg-zinc-900/80 focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500/30 rounded-none">
-                          <PromptInputModelSelectValue />
-                        </PromptInputModelSelectTrigger>
-                        <PromptInputModelSelectContent className="min-w-[160px] rounded-md bg-zinc-950/95 border border-zinc-800/80 text-zinc-200 shadow-lg backdrop-blur supports-[backdrop-filter]:backdrop-blur-md">
-                          {models.map((model) => (
-                            <PromptInputModelSelectItem
-                              key={model.id}
-                              value={model.id}
-                              className="text-xs px-2 py-1.5 hover:bg-pink-500/10 hover:text-zinc-100 focus:bg-pink-500/10 focus:text-zinc-100 data-[highlighted]:bg-pink-500/15 data-[highlighted]:text-zinc-100 data-[state=checked]:text-pink-400"
-                            >
-                              {model.name}
-                            </PromptInputModelSelectItem>
-                          ))}
-                        </PromptInputModelSelectContent>
-                      </PromptInputModelSelect>
+                      <ModelSelector
+                        model={model}
+                        setModel={setModel}
+                        container={toolbarRef.current}
+                        size="sm"
+                        className="text-zinc-300 hover:text-zinc-100"
+                      />
                     </div>
                   </div>
                   <Conversation>

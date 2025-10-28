@@ -55,10 +55,18 @@ function SelectContent({
   children,
   position = "popper",
   align = "center",
+  container,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+  /**
+   * Optional container element to portal into. When provided, the dropdown
+   * will render inside this element instead of document.body.
+   * Useful for clipping within floating toolbars.
+   */
+  container?: HTMLElement | null
+}) {
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={container ?? undefined}>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
