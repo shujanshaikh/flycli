@@ -16,6 +16,7 @@ import {
   silent,
 } from "./config/parser.js";
 import { getFiles } from "./utils/get-files.js";
+import { runTerminalCommand } from "./utils/terminal.js";
 
 export async function startServer() {
   // Default ports
@@ -92,10 +93,13 @@ export async function startServer() {
           ws.send(JSON.stringify({ type: "file_list", files }));
           return;
         }
-        // if (data.type === 'get-model') {
-        //   ws.send(JSON.stringify({ type: "model", model: data.body.model }));
-        //   return;
-        // }
+        
+        if(data.type === "terminal"){
+          const terminalResult = runTerminalCommand(data.command);
+          ws.send(JSON.stringify({ type: "terminal_result", stdout: terminalResult.stdout, stderr: terminalResult.stderr, success: terminalResult.success }));
+          return;
+        }
+
         const result = await createAgent(message);
         for await (const chunk of result.toUIMessageStream()) {
           ws.send(JSON.stringify(chunk));

@@ -23,12 +23,15 @@ import { Response } from '@/components/ai-elements/response';
 import { ToolRenderer } from '@/components/ToolRenderer';
 import { WebsocketChatTransport } from '../../agent/ws-transport';
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
-import { ArrowUp, SquareIcon, MessageCircleDashed, Rabbit } from 'lucide-react';
+import { ArrowUp, SquareIcon, MessageCircleDashed, Rabbit, Terminal } from 'lucide-react';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-elements/reasoning';
 import { Shimmer } from './components/ai-elements/shimmer';
 import type { ChatMessage } from '@/lib/types';
 import { FileMention } from './components/file-mention';
 import { models } from './lib/models';
+import { WS_URL } from './lib/constant';
+import { TerminalComponent } from './components/Terminal';
+
 
 const Chat = () => {
 
@@ -46,6 +49,7 @@ const Chat = () => {
   const [showMentionPopover, setShowMentionPopover] = useState(false);
   const mentionPopoverRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<string>(models[0].id);
+  const [isTerminalEnabled, setIsTerminalEnabled] = useState(false);
 
 
 
@@ -122,7 +126,7 @@ const Chat = () => {
   const transport = new WebsocketChatTransport({
     agent: 'agent',
     toolCallCallback: () => { },
-    url: 'http://localhost:3100/agent',
+    url: WS_URL,
   });
 
   const { messages, sendMessage, status } = useChat<ChatMessage>({
@@ -410,7 +414,25 @@ const Chat = () => {
                     <span className="text-zinc-400">@</span>
                     <span className="text-zinc-500">Add Context</span>
                   </div>
+                  <div className="w-px h-3 bg-border/50" />
+                  <button
+                    onClick={() => setIsTerminalEnabled(!isTerminalEnabled)}
+                    className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded transition-colors ${
+                      isTerminalEnabled
+                        ? 'text-pink-400 bg-pink-500/10'
+                        : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+                    }`}
+                    title={isTerminalEnabled ? 'Disable Terminal' : 'Enable Terminal'}
+                  >
+                    <Terminal className="size-3.5" />
+                    <span>Terminal</span>
+                  </button>
                 </div>
+                {isTerminalEnabled && (
+                  <div className="border-t border-border/30 h-64 overflow-hidden">
+                    <TerminalComponent enabled={isTerminalEnabled} />
+                  </div>
+                )}
               </>
             )}
           </div>

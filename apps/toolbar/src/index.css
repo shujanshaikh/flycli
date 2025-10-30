@@ -169,3 +169,28 @@ body {
   /* Increased duration for more delay in animation */
   animation: flycli-shimmer 3s ease-in-out infinite;
 }
+
+/* xterm.js terminal styling overrides */
+.terminal-container .xterm {
+  padding: 0 !important;
+  height: 100% !important;
+}
+
+.terminal-container .xterm-viewport {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.terminal-container .xterm-screen {
+  padding: 0 !important;
+}
+
+.terminal-container .xterm-scroll-area {
+  padding: 0 !important;
+}
+
+.terminal-container .xterm-rows {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-feature-settings: normal !important;
+  font-variant-ligatures: none !important;
+}

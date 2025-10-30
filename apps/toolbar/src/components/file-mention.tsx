@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Command, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { FileIcon, Loader2 } from "lucide-react";
+import { WS_URL } from "@/lib/constant";
 
 interface FileMentionProps {
   text: string;
@@ -25,7 +26,7 @@ export function FileMention({
 
   useEffect(() => {
     setIsLoading(true);
-    const ws = new WebSocket("ws://localhost:3100/agent");
+    const ws = new WebSocket(WS_URL);
 
     const handleOpen = () => {
       ws.send(JSON.stringify({ type: "list-files" }));
