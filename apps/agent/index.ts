@@ -38,9 +38,10 @@ export async function createAgent (message : WSMessage) {
          grep: grepTool, 
          searchReplace: searchReplace,
         },
-        //temperature : 0.1,
+        temperature : 0.7,
        // toolChoice: "required",
      });
+    
     return result;
   } catch (error : any) {
     console.error('Error creating agent:', error);

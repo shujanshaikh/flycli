@@ -210,7 +210,7 @@ const Chat = () => {
 
   return (
     <div className="dark">
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-background">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-gradient-to-br from-background via-background to-white/5">
         <iframe
           src="http://localhost:3000"
           className="absolute inset-0 w-full h-full border-0 bg-background"
@@ -225,80 +225,76 @@ const Chat = () => {
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,
-            width: isCollapsed ? '56px' : '420px',
-            height: isCollapsed ? '56px' : '660px',
+            width: isCollapsed ? '52px' : '440px',
+            height: isCollapsed ? '52px' : '600px',
+            maxHeight: isCollapsed ? '52px' : '600px',
             zIndex: 1000,
             cursor: isDragging ? 'grabbing' : 'default'
           }}
         >
-          <div className="flex flex-col bg-background/90 rounded-3xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="flex flex-col h-full max-h-full bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl rounded-2xl border border-border/40 shadow-2xl overflow-hidden ring-1 ring-white/5">
             {isCollapsed ? (
               <div
                 onMouseDown={handleMouseDown}
-                className="flex items-center justify-center w-14 h-14 cursor-grab active:cursor-grabbing hover:bg-background/80 transition-colors"
+                className="flex items-center justify-center w-full h-full cursor-grab active:cursor-grabbing hover:bg-white/5 transition-colors rounded-2xl"
               >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsCollapsed(false);
                   }}
-                  className="flex items-center justify-center"
+                  className="flex items-center justify-center p-2 rounded-lg hover:bg-white/10 transition-colors"
                 >
-                  <MessageCircleDashed className="w-6 h-6 text-pink-400" />
+                  <MessageCircleDashed className="w-5 h-5 text-pink-400/90" />
                 </button>
               </div>
             ) : (
               <>
-                {/* Top bar */}
                 <div
-                  className="flex items-center justify-between px-3 py-2 bg-zinc-900 border-b border-zinc-800 cursor-grab active:cursor-grabbing"
+                  className="flex items-center justify-between px-4 py-3 cursor-grab active:cursor-grabbing border-b border-border/30"
                   onMouseDown={handleMouseDown}
                 >
-                  <div className="flex items-center gap-2 px-1">
-                    <span className="flex items-center gap-1 px-2 py-0.5 text-pink-300 text-xs font-semibold tracking-wide">
-                      <Rabbit className="size-4" />
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 text-pink-400/90 text-xs font-medium tracking-wide">
+                      <Rabbit className="size-3.5" />
                       flycli
                     </span>
                   </div>
-                  <button
-                    onClick={() => setIsCollapsed(true)}
-                    className="text-zinc-400 hover:text-zinc-200 transition-colors"
-                  >
-                    <MessageCircleDashed className="size-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <ModelSelector
+                      model={model}
+                      setModel={setModel}
+                      container={toolbarRef.current}
+                      size="sm"
+                      className="text-zinc-400 hover:text-zinc-200 transition-colors"
+                    />
+                    <button
+                      onClick={() => setIsCollapsed(true)}
+                      className="text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded-md hover:bg-white/5"
+                    >
+                      <MessageCircleDashed className="size-4" />
+                    </button>
+                  </div>
                 </div>
 
-
                 <div
-                  className="flex flex-col p-3 bg-background/60 cursor-grab active:cursor-grabbing"
-                  style={{ height: '488px' }}
+                  className="flex flex-col flex-1 min-h-0 overflow-hidden cursor-grab active:cursor-grabbing"
                   onMouseDown={handleMouseDown}
                 >
-                  <div className="mb-2">
-                    <div className="flex items-center justify-end gap-2 rounded-lg">
-                      <ModelSelector
-                        model={model}
-                        setModel={setModel}
-                        container={toolbarRef.current}
-                        size="sm"
-                        className="text-zinc-300 hover:text-zinc-100"
-                      />
-                    </div>
-                  </div>
-                  <Conversation>
-                    <ConversationContent>
+                  <Conversation className="flex-1 min-h-0">
+                    <ConversationContent className="px-4 py-3">
                       {messages.map((message) => (
                         <Message from={message.role} key={message.id}>
                           <MessageContent
-                            className="rounded-xl bg-transparent transition-colors
-                          group-[.is-user]:rounded-lg group-[.is-user]:bg-zinc-800 group-[.is-user]:text-foreground
+                            className="rounded-lg bg-transparent transition-colors
+                          group-[.is-user]:rounded-lg group-[.is-user]:bg-zinc-800/50 group-[.is-user]:text-foreground group-[.is-user]:border group-[.is-user]:border-white/5
                           group-[.is-assistant]:bg-transparent group-[.is-assistant]:text-foreground"
                           >
                             {message.parts.map((part, i) => {
                               switch (part.type) {
                                 case 'text':
                                   return (
-                                    <Response key={`${message.id}-${i}`} className="leading-relaxed">
+                                    <Response key={`${message.id}-${i}`} className="leading-relaxed text-sm">
                                       {part.text}
                                     </Response>
                                   );
@@ -334,93 +330,85 @@ const Chat = () => {
                         </Message>
                       ))}
 
-
                       {status === 'submitted' && (
-                        <div className="px-2">
-                          <Shimmer className='text-sm' duration={1}>flycli is thinking...</Shimmer>
+                        <div className="px-2 py-1">
+                          <Shimmer className='text-sm text-zinc-400' duration={1}>flycli is thinking...</Shimmer>
                         </div>
                       )}
                     </ConversationContent>
                     <ConversationScrollButton />
                   </Conversation>
 
-                  <PromptInput
-                    onSubmit={handleSubmit}
-                    // className="mt-2"
-                    globalDrop
-                    multiple
-                    inputGroupClassName="bg-background/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-sm transition"
-                  >
-                    <PromptInputBody>
-                      
-                      {/* <PromptInputAttachments>
-                    {(attachment) => <PromptInputAttachment data={attachment} />}
-                  </PromptInputAttachments> */}
-                      <PromptInputTextarea
-                        onChange={handleTextChange}
-                        onSelect={handleCursorPositionChange}
-                        ref={textareaRef}
-                        value={text}
-                        rows={1}
-                        // placeholder='Ask me anything...'
-                        className="min-h-10 max-h-32 py-3 pl-4 pr-10 text-foreground placeholder:text-muted-foreground/80 caret-pink-400 selection:bg-pink-500/20"
-                      />
-                      {showMentionPopover && textareaRef.current && (
-                        <div
-                          ref={mentionPopoverRef}
-                          className="absolute"
-                          style={{
-                            bottom: '100%',
-                            left: '0',
-                            marginBottom: '4px',
-                          }}
+
+                  <div className="px-4 pb-4 pt-2">
+                    <PromptInput
+                      onSubmit={handleSubmit}
+                      globalDrop
+                      multiple
+                      inputGroupClassName="bg-white/5 backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm border border-white/10 shadow-lg transition-all hover:border-white/20 focus-within:border-pink-500/30 focus-within:ring-1 focus-within:ring-pink-500/20"
+                    >
+                      <PromptInputBody>
+                        <PromptInputTextarea
+                          onChange={handleTextChange}
+                          onSelect={handleCursorPositionChange}
+                          ref={textareaRef}
+                          value={text}
+                          rows={1}
+                          placeholder="Ask flycli anything..."
+                          className="min-h-10 max-h-32 py-3 pl-4 pr-10 text-foreground placeholder:text-zinc-500 caret-pink-400 selection:bg-pink-500/20 bg-transparent"
+                        />
+                        {showMentionPopover && textareaRef.current && (
+                          <div
+                            ref={mentionPopoverRef}
+                            className="absolute z-50"
+                            style={{
+                              bottom: '100%',
+                              left: '0',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            <FileMention
+                              text={text}
+                              cursorPosition={cursorPosition}
+                              onFileSelect={handleFileSelect}
+                              onClose={() => setShowMentionPopover(false)}
+                            />
+                          </div>
+                        )}
+                      </PromptInputBody>
+                      <PromptInputFooter className="py-1.5 px-2">
+                        <PromptInputTools>
+                          <PromptInputActionMenu>
+                            <PromptInputActionMenuContent>
+                              <PromptInputActionAddAttachments />
+                            </PromptInputActionMenuContent>
+                          </PromptInputActionMenu>
+                        </PromptInputTools>
+                        <PromptInputSubmit
+                          size="icon-sm"
+                          variant="ghost"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-lg text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                          disabled={!text && !loading}
+                          status={status}
+                          aria-label="Send message"
                         >
-                          <FileMention
-                            text={text}
-                            cursorPosition={cursorPosition}
-                            onFileSelect={handleFileSelect}
-                            onClose={() => setShowMentionPopover(false)}
-                          />
-                        </div>
-                      )}
-                    </PromptInputBody>
-                    <PromptInputFooter className="py-1">
-                      <PromptInputTools>
-                        <PromptInputActionMenu>
-                          {/* <PromptInputActionMenuTrigger
-                        size="icon-xs"
-                        className="text-pink-300 hover:bg-pink-500/20 hover:text-pink-50"
-                      /> */}
-                          <PromptInputActionMenuContent>
-                            <PromptInputActionAddAttachments />
-                          </PromptInputActionMenuContent>
-                        </PromptInputActionMenu>
-                      </PromptInputTools>
-                      <PromptInputSubmit
-                        size="icon-sm"
-                        variant="ghost"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full text-pink-500 hover:text-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={!text && !loading}
-                        status={status}
-                        aria-label="Send message"
-                      >
-                        {status === 'streaming' ? <SquareIcon className="size-5" /> : <ArrowUp className="size-5" />}
-                      </PromptInputSubmit>
-                    </PromptInputFooter>
-                  </PromptInput>
+                          {status === 'streaming' ? <SquareIcon className="size-4" /> : <ArrowUp className="size-4" />}
+                        </PromptInputSubmit>
+                      </PromptInputFooter>
+                    </PromptInput>
+                  </div>
                 </div>
 
-
-                <div
-                  className="flex items-center justify-center gap-8 px-3 py-2 bg-zinc-900 border-t border-zinc-800"
-                >
-                  <div className="flex items-center gap-1.5 text-zinc-400 text-xs">
-                    <span className="text-zinc-300">⌘</span>
-                    <span className="text-zinc-400">+</span>
-                    <span className="text-zinc-300">K</span>
+                <div className="flex items-center justify-center gap-6 px-4 py-2.5 border-t border-border/30 bg-white/5">
+                  <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-medium">
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-zinc-400">⌘</kbd>
+                    <span className="text-zinc-600">+</span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-zinc-400">K</kbd>
                   </div>
-                  <div className="flex items-center gap-1.5 text-zinc-400 text-xs">
-                    <span className="text-zinc-300">@ Add Context</span>
+                  <div className="w-px h-3 bg-border/50" />
+                  <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
+                    <span className="text-zinc-400">@</span>
+                    <span className="text-zinc-500">Add Context</span>
                   </div>
                 </div>
               </>
