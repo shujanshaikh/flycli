@@ -1,135 +1,294 @@
-# Turborepo starter
+# flycli
 
-This Turborepo starter is maintained by the Turborepo core team.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
+Your AI coding agent that lives in your browser. flycli is a development tool that wraps your Next.js application with an AI-powered toolbar, enabling you to interact with your codebase using natural language.
 
 ## What's inside?
 
-This Turborepo includes the following packages/apps:
+This Turborepo monorepo includes the following packages/apps:
 
-### Apps and Packages
+### Apps
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- **`cli`**: The main CLI tool that starts the flycli server and proxies your Next.js app
+- **`agent`**: The AI agent package that handles code operations and tool execution
+- **`toolbar`**: A React-based UI toolbar that provides the interface for interacting with the AI agent
+- **`web`**: A Next.js web application (example app)
+
+### Packages
+
+- **`@repo/ui`**: Shared React component library
+- **`@repo/eslint-config`**: ESLint configurations for the monorepo
+- **`@repo/typescript-config`**: TypeScript configurations used throughout the monorepo
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
-### Utilities
+## Prerequisites
 
-This Turborepo has some additional tools already setup for you:
+- **Node.js**: >= 18
+- **Bun**: >= 1.2.22 (package manager)
+- **OpenAI API Key**: Required for AI agent functionality
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+## Local Setup
 
-### Build
+### 1. Clone the Repository
 
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+git clone <repository-url>
+cd jafdotdev
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 2. Install Dependencies
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+bun install
 ```
 
-### Develop
+### 3. Build the Project
 
-To develop all apps and packages, run the following command:
+Build all apps and packages:
 
-```
-cd my-turborepo
+```bash
+# Build everything
+bun run build
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+# Or build specific packages
+turbo build --filter=cli
+turbo build --filter=toolbar
+turbo build --filter=agent
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 4. Run Development Mode
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Start all apps in development mode:
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+bun run dev
 ```
 
-### Remote Caching
+Or run specific apps:
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+```bash
+# Run CLI only
+turbo dev --filter=cli
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+# Run toolbar only
+turbo dev --filter=toolbar
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## Using flycli in Your Project
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+flycli is designed to wrap your existing Next.js application with an AI-powered development toolbar. Here's how to set it up:
+
+### Option 1: Install as Package (Recommended)
+
+1. **Install flycli:**
+
+```bash
+# Local installation (recommended)
+bun add -d flycli
+
+# Or use bunx to run without installing
+bunx flycli
+```
+
+2. **Create a configuration file** (`flycli.config.json`) in your project root:
+
+```json
+{
+  "port": 3100,
+  "appPort": 3000,
+  "autoPlugins": true,
+  "plugins": [],
+  "eddyMode": "default"
+}
+```
+
+3. **Set up environment variables in your project:**
+
+Create a `.env` file in your project root (the project where you want to use the toolbar):
+
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+> **Note:** The OpenAI API key should be set in the project where you want to use flycli, not in the flycli repository itself.
+
+4. **Start your Next.js app** in one terminal:
+
+```bash
+bun run dev
+# or
+next dev
+```
+
+5. **Start flycli** in another terminal:
+
+```bash
+# If installed locally
+bunx flycli
+
+# Or with custom ports
+bunx flycli --port 3100 --app-port 3000
+```
+
+6. **Access the toolbar:**
+
+Open your browser and navigate to `http://localhost:3100`. flycli will proxy your Next.js app (running on port 3000) and overlay the AI toolbar.
+
+### Option 2: Use from Source (Development)
+
+If you want to use flycli from the source code:
+
+1. **Build flycli:**
+
+```bash
+cd apps/cli
+bun run build
+bun run build:toolbar
+```
+
+2. **Link or use directly:**
+
+```bash
+# From your project directory
+node /path/to/jafdotdev/apps/cli/dist/cli.js
+
+# Or create a symlink
+ln -s /path/to/jafdotdev/apps/cli/dist/cli.js /usr/local/bin/flycli
+```
+
+### Configuration Options
+
+The `flycli.config.json` file supports the following options:
+
+- **`port`**: Port where flycli toolbar will run (default: 3100)
+- **`appPort`**: Port where your Next.js app is running (default: 3000)
+- **`autoPlugins`**: Automatically detect and load plugins (default: false)
+- **`plugins`**: Array of plugin names to load
+- **`eddyMode`**: Mode for the AI agent (default: "default")
+
+### CLI Options
+
+```bash
+flycli [options]
+
+Options:
+  -p, --port [port]              Port for flycli toolbar (default: 3100)
+  -a, --app-port <app-port>      Port of your Next.js app (default: 3000)
+  -w, --workspace <workspace>     Path to your project workspace
+  -s, --silent                   Suppress output messages
+  -v, --verbose                  Show debug information
+  -h, --help                     Display help
+  -V, --version                  Display version
+```
+
+### Example Usage
+
+```bash
+# Basic usage (assumes Next.js on port 3000)
+bunx flycli
+
+# Custom ports
+bunx flycli --port 3100 --app-port 3001
+
+# Verbose mode for debugging
+bunx flycli --verbose
+
+# Specify workspace directory
+bunx flycli --workspace /path/to/your/project
+```
+
+## Development
+
+### Project Structure
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+jafdotdev/
+├── apps/
+│   ├── agent/          # AI agent package
+│   ├── cli/            # CLI tool
+│   ├── toolbar/        # React toolbar UI
+│   └── web/            # Example Next.js app
+├── packages/
+│   ├── eslint-config/  # Shared ESLint config
+│   ├── typescript-config/ # Shared TS config
+│   └── ui/             # Shared UI components
+└── package.json        # Root package.json
 ```
+
+### Available Scripts
+
+- `bun run build` - Build all packages
+- `bun run dev` - Start all apps in development mode
+- `bun run lint` - Lint all packages
+- `bun run format` - Format code with Prettier
+- `bun run check-types` - Type check all packages
+
+### Building Specific Packages
+
+```bash
+# Build CLI
+turbo build --filter=cli
+
+# Build toolbar
+turbo build --filter=toolbar
+
+# Build agent
+turbo build --filter=agent
+```
+
+## How It Works
+
+1. **flycli starts a server** on the specified port (default: 3100)
+2. **It proxies requests** to your Next.js app running on another port (default: 3000)
+3. **The toolbar UI** is served at the flycli port and overlays your app
+4. **WebSocket connection** enables real-time communication between the toolbar and the AI agent
+5. **The AI agent** can read files, edit code, search, and execute terminal commands in your workspace
+
+## Troubleshooting
+
+### Port Conflicts
+
+If you encounter port conflicts, specify different ports:
+
+```bash
+bunx flycli --port 3101 --app-port 3001
+```
+
+### Missing API Key
+
+Make sure `OPENAI_API_KEY` is set in your project's `.env` file (the project where you're using flycli, not the flycli repository):
+
+```bash
+# In your project's .env file
+OPENAI_API_KEY=your_key_here
+```
+
+Or set it as an environment variable:
+
+```bash
+export OPENAI_API_KEY=your_key_here
+```
+
+### Toolbar Not Loading
+
+1. Ensure the toolbar is built: `cd apps/toolbar && bun run build`
+2. Check that your Next.js app is running on the correct port
+3. Verify flycli is proxying correctly with `--verbose` flag
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting: `bun run lint && bun run check-types`
+5. Submit a pull request
+
+## License
+
+MIT
 
 ## Useful Links
 
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+- [Turborepo Documentation](https://turborepo.com/docs)
+- [Bun Documentation](https://bun.sh/docs)
+- [Next.js Documentation](https://nextjs.org/docs)

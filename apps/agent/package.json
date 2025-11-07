@@ -8,7 +8,8 @@
   },
   "exports": {
     "./agent": "./index.ts",
-    "./tools/*": "./tools/*.js"
+    "./tools/*": "./tools/*.js",
+    "./ws-transport": "./ws-transport.ts"
   },
   "peerDependencies": {
     "typescript": "^5"

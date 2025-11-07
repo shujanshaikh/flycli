@@ -21,7 +21,7 @@ import {
 import { Message, MessageContent } from '@/components/ai-elements/message';
 import { Response } from '@/components/ai-elements/response';
 import { ToolRenderer } from '@/components/ToolRenderer';
-import { WebsocketChatTransport } from '../../agent/ws-transport';
+import { WebsocketChatTransport } from '@repo/agent/ws-transport';
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import { ArrowUp, SquareIcon, MessageCircleDashed, Rabbit, Terminal } from 'lucide-react';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-elements/reasoning';
@@ -129,7 +129,7 @@ const Chat = () => {
     url: WS_URL,
   });
 
-  const { messages, sendMessage, status } = useChat<ChatMessage>({
+  const { messages, sendMessage, status , stop } = useChat<ChatMessage>({
     onFinish: () => setLoading(false),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     transport,
@@ -214,10 +214,10 @@ const Chat = () => {
 
   return (
     <div className="dark">
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-gradient-to-br from-background via-background to-white/5">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800/50">
         <iframe
           src="http://localhost:3000"
-          className="absolute inset-0 w-full h-full border-0 bg-background"
+          className="absolute inset-0 w-full h-full border-0 bg-zinc-950"
           style={{
             zIndex: 0
           }}
@@ -236,7 +236,7 @@ const Chat = () => {
             cursor: isDragging ? 'grabbing' : 'default'
           }}
         >
-          <div className="flex flex-col h-full max-h-full bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl rounded-2xl border border-border/40 shadow-2xl overflow-hidden ring-1 ring-white/5">
+          <div className="flex flex-col h-full max-h-full bg-zinc-900/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl rounded-2xl border border-border/40 shadow-2xl overflow-hidden ring-1 ring-white/5">
             {isCollapsed ? (
               <div
                 onMouseDown={handleMouseDown}
@@ -315,12 +315,13 @@ const Chat = () => {
                                   );
                                 default: {
                                   if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     const toolPart = part as any;
                                     return (
                                       <ToolRenderer
                                         key={`${message.id}-${i}`}
                                         toolType={toolPart.type}
-                                        state={toolPart.state}
+                                        state={toolPart.state as 'input-streaming' | 'input-available' | 'output-available' | 'output-error'}
                                         output={toolPart.output}
                                         errorText={toolPart.errorText}
                                       />
@@ -394,9 +395,10 @@ const Chat = () => {
                           className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-lg text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                           disabled={!text && !loading}
                           status={status}
+                          
                           aria-label="Send message"
                         >
-                          {status === 'streaming' ? <SquareIcon className="size-4" /> : <ArrowUp className="size-4" />}
+                          {status === 'streaming' ? <SquareIcon  onClick={stop} className="size-4" />  : <ArrowUp className="size-4" />}
                         </PromptInputSubmit>
                       </PromptInputFooter>
                     </PromptInput>
