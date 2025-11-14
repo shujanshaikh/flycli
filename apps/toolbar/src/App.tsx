@@ -35,8 +35,6 @@ import { TerminalComponent } from './components/Terminal';
 
 const Chat = () => {
 
-
-
   const [text, setText] = useState<string>('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(false);

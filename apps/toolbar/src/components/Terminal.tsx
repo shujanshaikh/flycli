@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react"
 import { WS_URL } from "../lib/constant"
 import { Terminal } from '@xterm/xterm';
-// @ts-ignore - FitAddon types may not be available
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 

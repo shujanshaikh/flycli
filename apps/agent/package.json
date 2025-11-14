@@ -8,7 +8,7 @@
   },
   "exports": {
     "./agent": "./index.ts",
-    "./tools/*": "./tools/*.js",
+    "./tools/*": "./tools/*.ts",
     "./ws-transport": "./ws-transport.ts"
   },
   "peerDependencies": {

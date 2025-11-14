@@ -33,7 +33,7 @@ Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
 ```bash
 git clone <repository-url>
-cd jafdotdev
+cd flycli
 ```
 
 ### 2. Install Dependencies
@@ -78,19 +78,29 @@ turbo dev --filter=toolbar
 
 flycli is designed to wrap your existing Next.js application with an AI-powered development toolbar. Here's how to set it up:
 
-### Option 1: Install as Package (Recommended)
+### Step 1: Link flycli Locally
 
-1. **Install flycli:**
+1. **Link the package globally** (from the flycli repository):
 
 ```bash
-# Local installation (recommended)
-bun add -d flycli
-
-# Or use bunx to run without installing
-bunx flycli
+cd apps/cli
+bun link
 ```
 
-2. **Create a configuration file** (`flycli.config.json`) in your project root:
+This registers the `flycli` package globally so it can be used in other projects.
+
+2. **In your project** (where you want to use flycli), link the package:
+
+```bash
+# From your project directory
+bun link flycli
+```
+
+> **Note:** You need to link the package in each project where you want to use it. This only needs to be done once per project.
+
+### Step 2: Configure Your Project
+
+1. **Create a configuration file** (`flycli.config.json`) in your project root:
 
 ```json
 {
@@ -102,7 +112,7 @@ bunx flycli
 }
 ```
 
-3. **Set up environment variables in your project:**
+2. **Set up environment variables in your project:**
 
 Create a `.env` file in your project root (the project where you want to use the toolbar):
 
@@ -112,7 +122,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 > **Note:** The OpenAI API key should be set in the project where you want to use flycli, not in the flycli repository itself.
 
-4. **Start your Next.js app** in one terminal:
+### Step 3: Start Your Application
+
+1. **Start your Next.js app** in one terminal:
 
 ```bash
 bun run dev
@@ -120,23 +132,22 @@ bun run dev
 next dev
 ```
 
-5. **Start flycli** in another terminal:
+2. **Start flycli** in another terminal:
 
 ```bash
-# If installed locally
 bunx flycli
 
 # Or with custom ports
 bunx flycli --port 3100 --app-port 3000
 ```
 
-6. **Access the toolbar:**
+3. **Access the toolbar:**
 
 Open your browser and navigate to `http://localhost:3100`. flycli will proxy your Next.js app (running on port 3000) and overlay the AI toolbar.
 
-### Option 2: Use from Source (Development)
+### Alternative: Use Built File Directly
 
-If you want to use flycli from the source code:
+If you prefer to use the built file directly instead of linking:
 
 1. **Build flycli:**
 
@@ -146,14 +157,14 @@ bun run build
 bun run build:toolbar
 ```
 
-2. **Link or use directly:**
+2. **Use the built file directly:**
 
 ```bash
 # From your project directory
-node /path/to/jafdotdev/apps/cli/dist/cli.js
+bun /path/to/flycli/apps/cli/dist/cli.js
 
 # Or create a symlink
-ln -s /path/to/jafdotdev/apps/cli/dist/cli.js /usr/local/bin/flycli
+ln -s /path/to/flycli/apps/cli/dist/cli.js /usr/local/bin/flycli
 ```
 
 ### Configuration Options
@@ -202,7 +213,7 @@ bunx flycli --workspace /path/to/your/project
 ### Project Structure
 
 ```
-jafdotdev/
+flycli/
 ├── apps/
 │   ├── agent/          # AI agent package
 │   ├── cli/            # CLI tool
@@ -274,6 +285,14 @@ export OPENAI_API_KEY=your_key_here
 1. Ensure the toolbar is built: `cd apps/toolbar && bun run build`
 2. Check that your Next.js app is running on the correct port
 3. Verify flycli is proxying correctly with `--verbose` flag
+
+### `bunx flycli` Not Found
+
+If you get `error: could not determine executable to run for package flycli`:
+
+1. Make sure you've linked the package globally: `cd apps/cli && bun link`
+2. Make sure you've linked it in your project: `bun link flycli` (from your project directory)
+3. Verify the link worked by checking: `ls -la node_modules/.bin/flycli`
 
 ## Contributing
 
