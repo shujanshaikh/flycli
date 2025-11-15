@@ -19,7 +19,6 @@ import { getFiles } from "./utils/get-files.js";
 import { runTerminalCommand } from "./utils/terminal.js";
 
 export async function startServer() {
-  // Default ports
   const DEV_PORT = cliPort || 3100;
   const APP_PORT = cliAppPort || 3000;
 

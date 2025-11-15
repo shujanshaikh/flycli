@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { models } from "@/lib/models"
+import { chatModel } from "@/lib/models"
 import {
   Select,
   SelectContent,
@@ -58,7 +58,7 @@ export function ModelSelector({
           "rounded-md bg-zinc-950/95 border border-zinc-800/80 text-zinc-200 shadow-md min-w-0 w-[var(--radix-select-trigger-width)]"
         )}
       >
-        {models.map((m) => (
+        {chatModel.map((m) => (
           <SelectItem
             key={m.id}
             value={m.id}

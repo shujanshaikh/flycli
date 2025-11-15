@@ -1,4 +1,4 @@
-import { streamText , convertToModelMessages , stepCountIs , smoothStream} from "ai"
+import { streamText , convertToModelMessages , stepCountIs , smoothStream, type LanguageModel} from "ai"
 import { SYSTEM_PROMPT } from "./prompt";
 import { editFiles } from "./tools/edit-files";
 import { readFile } from "./tools/read-file";
@@ -13,16 +13,16 @@ import {createOpenAI} from "@ai-sdk/openai";
 
 export async function createAgent (message : WSMessage) {
   
-  const openai = createOpenAI({
-    apiKey: Bun.env.OPENAI_API_KEY,
-    baseURL : "https://api.z.ai/api/coding/paas/v4",
-  });
+  // const openai = createOpenAI({
+  //   apiKey: Bun.env.OPENAI_API_KEY,
+  //   baseURL : "https://api.z.ai/api/coding/paas/v4",
+  // });
     try {
       const data = JSON.parse(message as string) as SendMessagesParams
-      const model = (data.body as { model?: string } | undefined)?.model ?? "glm-4.6";
+      const model = (data.body as { model?: string } | undefined)?.model as LanguageModel;
       const result = streamText({
        messages: convertToModelMessages(data.messages),
-       model: openai.chat(model),
+       model: model,
        stopWhen: stepCountIs(20), // Stop after 20 steps with tool calls
        system: SYSTEM_PROMPT,
        experimental_transform: smoothStream({

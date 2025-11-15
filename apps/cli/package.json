@@ -24,11 +24,11 @@
     "toolbar",
     "cli"
   ],
-  "author": "",
+  "author": "shujanshaikh",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/flycli.git"
+    "url": "https://github.com/shujanshaikh/flycli.git"
   },
   "devDependencies": {
     "@types/bun": "latest"

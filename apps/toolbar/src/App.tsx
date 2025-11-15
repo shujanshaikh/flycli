@@ -28,7 +28,7 @@ import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-e
 import { Shimmer } from './components/ai-elements/shimmer';
 import type { ChatMessage } from '@/lib/types';
 import { FileMention } from './components/file-mention';
-import { models } from './lib/models';
+import { chatModel } from './lib/models';
 import { WS_URL } from './lib/constant';
 import { TerminalComponent } from './components/Terminal';
 
@@ -46,7 +46,7 @@ const Chat = () => {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showMentionPopover, setShowMentionPopover] = useState(false);
   const mentionPopoverRef = useRef<HTMLDivElement>(null);
-  const [model, setModel] = useState<string>(models[0].id);
+  const [model, setModel] = useState<string>(chatModel[0].id);
   const [isTerminalEnabled, setIsTerminalEnabled] = useState(false);
 
 
