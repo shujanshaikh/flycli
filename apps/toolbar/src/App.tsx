@@ -26,7 +26,7 @@ import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import { ArrowUp, SquareIcon, MessageCircleDashed, Rabbit, Terminal } from 'lucide-react';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-elements/reasoning';
 import { Shimmer } from './components/ai-elements/shimmer';
-import type { ChatMessage } from '@/lib/types';
+import type { ChatMessage, ToolPart } from '@/lib/types';
 import { FileMention } from './components/file-mention';
 import { chatModel } from './lib/models';
 import { WS_URL } from './lib/constant';
@@ -313,13 +313,12 @@ const Chat = () => {
                                   );
                                 default: {
                                   if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    const toolPart = part as any;
+                                    const toolPart = part as ToolPart;
                                     return (
                                       <ToolRenderer
                                         key={`${message.id}-${i}`}
                                         toolType={toolPart.type}
-                                        state={toolPart.state as 'input-streaming' | 'input-available' | 'output-available' | 'output-error'}
+                                        state={toolPart.state}
                                         output={toolPart.output}
                                         errorText={toolPart.errorText}
                                       />

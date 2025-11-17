@@ -1,6 +1,8 @@
 import { FileText, FolderTree, Search, Edit, Trash2, CheckCircle, Loader2, Files } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import type { ToolOutput, ListFileItem } from '@/lib/types';
 
 
 
@@ -10,8 +12,7 @@ interface ToolRendererProps {
 
   state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error';
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  output?: any;
+  output?: ToolOutput;
 
   errorText?: string;
 
@@ -19,10 +20,9 @@ interface ToolRendererProps {
 
 
 
-const getToolIcon = (toolType: string) => {
+const getToolIcon = (toolType: string): LucideIcon => {
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const iconMap: Record<string, any> = {
+  const iconMap: Record<string, LucideIcon> = {
 
     'tool-readFile': FileText,
 
@@ -138,11 +138,11 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
 
             <div className="text-xs text-red-400">{errorText}</div>
 
-          ) : (
+          ) : output ? (
 
             <ToolOutput toolType={toolType} output={output} />
 
-          )}
+          ) : null}
 
         </div>
 
@@ -156,8 +156,7 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ToolOutput = ({ toolType, output }: { toolType: string; output: any }) => {
+const ToolOutput = ({ toolType, output }: { toolType: string; output: ToolOutput }) => {
 
   if (!output) return null;
 
@@ -165,7 +164,7 @@ const ToolOutput = ({ toolType, output }: { toolType: string; output: any }) => 
 
   // Handle message-based output
 
-  if (output.message) {
+  if ('message' in output && output.message) {
 
     return (
 
@@ -199,41 +198,40 @@ const ToolOutput = ({ toolType, output }: { toolType: string; output: any }) => 
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderToolSpecificOutput = (toolType: string, output: any) => {
+const renderToolSpecificOutput = (toolType: string, output: ToolOutput) => {
 
   switch (toolType) {
 
-    case 'tool-readFile':
-
-      return output.content ? (
+    case 'tool-readFile': {
+      const readFileOutput = output as Extract<ToolOutput, { content?: string }>;
+      return readFileOutput.content ? (
 
         <div className="mt-2 rounded border border-border/30 bg-background/50 p-2 max-h-48 overflow-auto">
 
           <pre className="text-[10px] leading-relaxed text-foreground/80 font-mono whitespace-pre-wrap">
 
-            {output.content.length > 1000
+            {readFileOutput.content.length > 1000
 
-              ? `${output.content.substring(0, 1000)}...`
+              ? `${readFileOutput.content.substring(0, 1000)}...`
 
-              : output.content}
+              : readFileOutput.content}
 
           </pre>
 
         </div>
 
       ) : null;
+    }
 
 
 
-    case 'tool-list':
-
-      return output.files && output.files.length > 0 ? (
+    case 'tool-list': {
+      const listOutput = output as Extract<ToolOutput, { files?: ListFileItem[] }>;
+      return listOutput.files && listOutput.files.length > 0 ? (
 
         <div className="mt-2 space-y-0.5">
 
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {output.files.slice(0, 10).map((file: any, idx: number) => (
+          {listOutput.files.slice(0, 10).map((file: ListFileItem, idx: number) => (
 
             <div key={idx} className="flex items-center gap-2 text-[10px] text-foreground/70">
 
@@ -253,11 +251,11 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
 
           ))}
 
-          {output.files.length > 10 && (
+          {listOutput.files.length > 10 && (
 
             <p className="text-[10px] text-muted-foreground mt-1">
 
-              ... and {output.files.length - 10} more
+              ... and {listOutput.files.length - 10} more
 
             </p>
 
@@ -266,17 +264,17 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
         </div>
 
       ) : null;
+    }
 
 
 
-    case 'tool-globTool':
-
-      return output.files && Array.isArray(output.files) ? (
+    case 'tool-globTool': {
+      const globOutput = output as Extract<ToolOutput, { files?: string[] | Array<{ path?: string; name?: string }> }>;
+      return globOutput.files && Array.isArray(globOutput.files) ? (
 
         <div className="mt-2 space-y-0.5">
 
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {Array.from(output.files).slice(0, 10).map((file: any, idx: number) => (
+          {globOutput.files.slice(0, 10).map((file: string | { path?: string; name?: string }, idx: number) => (
 
             <div key={idx} className="text-[10px] font-mono text-foreground/70 truncate">
 
@@ -286,11 +284,11 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
 
           ))}
 
-          {output.files.length > 10 && (
+          {globOutput.files.length > 10 && (
 
             <p className="text-[10px] text-muted-foreground mt-1">
 
-              ... and {output.files.length - 10} more
+              ... and {globOutput.files.length - 10} more
 
             </p>
 
@@ -299,18 +297,19 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
         </div>
 
       ) : null;
+    }
 
 
 
-    case 'tool-grepTool':
-
-      return output.result?.matches ? (
+    case 'tool-grepTool': {
+      const grepOutput = output as Extract<ToolOutput, { result?: { matches: string[] } }>;
+      return grepOutput.result?.matches ? (
 
         <div className="mt-2 rounded border border-border/30 bg-background/50 p-2 max-h-48 overflow-auto">
 
           <div className="space-y-1">
 
-            {output.result.matches.slice(0, 15).map((match: string, idx: number) => (
+            {grepOutput.result.matches.slice(0, 15).map((match: string, idx: number) => (
 
               <div key={idx} className="text-[10px] font-mono text-foreground/80 leading-relaxed">
 
@@ -320,11 +319,11 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
 
             ))}
 
-            {output.result.matches.length > 15 && (
+            {grepOutput.result.matches.length > 15 && (
 
               <p className="text-[10px] text-muted-foreground mt-1">
 
-                ... and {output.result.matches.length - 15} more matches
+                ... and {grepOutput.result.matches.length - 15} more matches
 
               </p>
 
@@ -335,12 +334,14 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
         </div>
 
       ) : null;
+    }
 
 
 
     case 'tool-searchReplace':
-    case 'tool-editFiles':
-      return output.success ? (
+    case 'tool-editFiles': {
+      const successOutput = output as Extract<ToolOutput, { success?: boolean }>;
+      return successOutput.success ? (
 
         <div className="mt-2 flex items-center gap-1.5 text-pink-400">
 
@@ -351,12 +352,13 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
         </div>
 
       ) : null;
+    }
 
 
 
-    case 'tool-deleteFile':
-
-      return output.success ? (
+    case 'tool-deleteFile': {
+      const deleteOutput = output as Extract<ToolOutput, { success?: boolean }>;
+      return deleteOutput.success ? (
 
         <div className="mt-2 flex items-center gap-1.5 text-pink-400">
 
@@ -367,6 +369,7 @@ const renderToolSpecificOutput = (toolType: string, output: any) => {
         </div>
 
       ) : null;
+    }
 
 
 

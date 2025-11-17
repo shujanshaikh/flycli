@@ -80,6 +80,63 @@ export type ChatMessage = UIMessage<
   ChatTools
 >;
 
+export interface ListFileItem {
+  name: string;
+  absolutePath: string;
+  relativePath: string;
+  type: "file" | "directory";
+}
+
+export interface ReadFileOutput {
+  success: boolean;
+  message: string;
+  content?: string;
+  totalLines?: number;
+  error?: string;
+}
+
+export interface ListOutput {
+  success: boolean;
+  message: string;
+  files?: ListFileItem[];
+  error?: string;
+}
+
+export interface GlobOutput {
+  success: boolean;
+  message: string;
+  files?: string[] | Array<{ path?: string; name?: string }>;
+  error?: string;
+}
+
+export interface GrepOutput {
+  success: boolean;
+  message: string;
+  result?: {
+    matches: string[];
+    totalMatches: number;
+    filesSearched: number;
+    truncated: boolean;
+  };
+  error?: string;
+}
+
+export interface SuccessOutput {
+  success: boolean;
+  message: string;
+  error?: string;
+  codes?: unknown;
+}
+
+export type ToolOutput = ReadFileOutput | ListOutput | GlobOutput | GrepOutput | SuccessOutput;
+
+export type ToolPart = {
+  type: `tool-${keyof ChatTools}` | string;
+  state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error';
+  output?: ToolOutput;
+  errorText?: string;
+};
+
 export interface Attachment {
   name: string;
   url: string;

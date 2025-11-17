@@ -37,7 +37,7 @@ export default function Home() {
                 <h3 className="text-lg font-medium text-white mb-2">1. Clone the Repository</h3>
                 <pre className="bg-neutral-900 border border-neutral-700 rounded-lg p-4 overflow-x-auto">
                   <code className="text-sm text-neutral-100 font-mono">
-                    {`git clone <repository-url>
+                    {`git clone https://github.com/shujanshaikh/flycli.git
 cd flycli`}
                   </code>
                 </pre>
