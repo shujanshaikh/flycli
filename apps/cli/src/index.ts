@@ -17,10 +17,17 @@ import {
 } from "./config/parser.js";
 import { getFiles } from "./utils/get-files.js";
 import { runTerminalCommand } from "./utils/terminal.js";
+import { pomptNumber } from "./utils/user-prompt.js";
+
+
 
 export async function startServer() {
-  const DEV_PORT = cliPort || 3100;
-  const APP_PORT = cliAppPort || 3000;
+  const appPort = await pomptNumber({
+    message: 'Enter the port number for the development server',
+    default: 3000,
+  });
+  const DEV_PORT =  3100;
+  const APP_PORT = appPort || 3000;
 
   if (verbose) {
     console.log(chalk.blue(`Starting flycli...`));
@@ -67,9 +74,23 @@ export async function startServer() {
   // Serve the main React toolbar app
   app.get('/{*splat}', (req: Request, res: Response) => {
     // Read the React toolbar HTML
-    const toolbarHtml = readFileSync(
+   
+    // const toolbarHtml = readFileSync(
+    //   resolve(toolbarPath!, 'index.html'),
+    //   'utf-8'
+    // );
+
+
+
+    let toolbarHtml = readFileSync(
       resolve(toolbarPath!, 'index.html'),
       'utf-8'
+    );
+
+    // Inject the dynamic APP_PORT into the HTML
+    toolbarHtml = toolbarHtml.replace(
+      '</head>',
+      `<script>window.FLYCLI_APP_PORT = ${APP_PORT};</script></head>`
     );
 
     res.send(toolbarHtml);
@@ -122,10 +143,16 @@ export async function startServer() {
 
   server.listen(DEV_PORT, () => {
     if (!silent) {
-      console.log(chalk.green.bold(`\n✓ flycli is running!\n`));
-      console.log(chalk.cyan(`  → Toolbar: http://localhost:${DEV_PORT}`));
-      console.log(chalk.cyan(`  → Proxying: http://localhost:${APP_PORT}`));
-      console.log(chalk.gray(`\n  Make sure your Next.js app is running on port ${APP_PORT}\n`));
+      const bar = chalk.bgGreen.black.bold(' flycli ');
+      const check = chalk.green.bold('✔');
+      console.log(`\n${bar} ${check} ${chalk.whiteBright('flycli is now running!')}\n`);
+      console.log(`  ${chalk.cyan('Toolbar:')}      ${chalk.underline(`http://localhost:${DEV_PORT}`)}`);
+      console.log(`  ${chalk.cyan('Proxying:')}     ${chalk.underline(`http://localhost:${APP_PORT}`)}`);
+      console.log(
+        chalk.gray(
+          `\n  ${chalk.yellow('TIP:')} Make sure your development server is running on port ${APP_PORT}.\n`
+        )
+      );
     }
   });
 }

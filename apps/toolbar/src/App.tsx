@@ -33,6 +33,12 @@ import { WS_URL } from './lib/constant';
 import { TerminalComponent } from './components/Terminal';
 
 
+declare global {
+  interface Window {
+    FLYCLI_APP_PORT?: number;
+  }
+}
+
 const Chat = () => {
 
   const [text, setText] = useState<string>('');
@@ -48,6 +54,11 @@ const Chat = () => {
   const mentionPopoverRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<string>(chatModel[0].id);
   const [isTerminalEnabled, setIsTerminalEnabled] = useState(false);
+  
+  // Get the dynamic app port from window object (injected by server)
+  const appPort = typeof window !== 'undefined' && window.FLYCLI_APP_PORT 
+    ? window.FLYCLI_APP_PORT 
+    : 3000;
 
 
 
@@ -214,7 +225,7 @@ const Chat = () => {
     <div className="dark">
       <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800/50">
         <iframe
-          src="http://localhost:3000"
+          src={`http://localhost:${appPort}`}
           className="absolute inset-0 w-full h-full border-0 bg-zinc-950"
           style={{
             zIndex: 0

@@ -9,14 +9,8 @@ import { grepTool } from "./tools/grep";
 import type { WSMessage } from 'agents';
 import type { SendMessagesParams } from "./ws-transport";
 import { searchReplace } from "./tools/search-replace";
-import {createOpenAI} from "@ai-sdk/openai";
 
 export async function createAgent (message : WSMessage) {
-  
-  // const openai = createOpenAI({
-  //   apiKey: Bun.env.OPENAI_API_KEY,
-  //   baseURL : "https://api.z.ai/api/coding/paas/v4",
-  // });
     try {
       const data = JSON.parse(message as string) as SendMessagesParams
       const model = (data.body as { model?: string } | undefined)?.model as LanguageModel;
