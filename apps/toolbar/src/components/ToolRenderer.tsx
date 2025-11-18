@@ -110,7 +110,6 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
 
     )}>
 
-      {/* Header */}
 
       <div className="flex items-center justify-between px-3 py-2 border-b border-border/60">
 
@@ -128,7 +127,6 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
 
 
 
-      {/* Content */}
 
       {(output || errorText) && (
 
@@ -162,7 +160,6 @@ const ToolOutput = ({ toolType, output }: { toolType: string; output: ToolOutput
 
 
 
-  // Handle message-based output
 
   if ('message' in output && output.message) {
 
@@ -182,7 +179,6 @@ const ToolOutput = ({ toolType, output }: { toolType: string; output: ToolOutput
 
 
 
-  // Fallback to JSON
 
   return (
 
@@ -370,9 +366,6 @@ const renderToolSpecificOutput = (toolType: string, output: ToolOutput) => {
 
       ) : null;
     }
-
-
-
     default:
 
       return null;

@@ -23,7 +23,7 @@ import { Response } from '@/components/ai-elements/response';
 import { ToolRenderer } from '@/components/ToolRenderer';
 import { WebsocketChatTransport } from '@repo/agent/ws-transport';
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
-import { ArrowUp, SquareIcon, MessageCircleDashed, Rabbit, Terminal } from 'lucide-react';
+import { ArrowUp, SquareIcon, MessageCircleDashed, MousePointerClick , Terminal } from 'lucide-react';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './components/ai-elements/reasoning';
 import { Shimmer } from './components/ai-elements/shimmer';
 import type { ChatMessage, ToolPart } from '@/lib/types';
@@ -54,16 +54,31 @@ const Chat = () => {
   const mentionPopoverRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<string>(chatModel[0].id);
   const [isTerminalEnabled, setIsTerminalEnabled] = useState(false);
+  const lastPastedRef = useRef<string>('');
   
-  // Get the dynamic app port from window object (injected by server)
+
   const appPort = typeof window !== 'undefined' && window.FLYCLI_APP_PORT 
     ? window.FLYCLI_APP_PORT 
     : 3000;
 
+   useEffect(() => {
+      const autoCopy : () => Promise<void> = async () => {
+         try {
+          const text = await navigator.clipboard.readText();
+          if(text.includes("<selected_element>") && text !== lastPastedRef.current){
+            setText(text);
+            lastPastedRef.current = text;
+          }
+         } catch (error) {
+          console.error('Clipboard access denied:', error);
+         }
+      };
 
+      const interval = setInterval(autoCopy, 1000); // Check every 1 seconds
+      return () => clearInterval(interval);
+    }, [])
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Prevent dragging if clicking on interactive elements
     const target = e.target as HTMLElement;
     if (
       target.closest('button') ||
@@ -269,7 +284,7 @@ const Chat = () => {
                 >
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-1.5 px-2.5 py-1 text-pink-400/90 text-xs font-medium tracking-wide">
-                      <Rabbit className="size-3.5" />
+                      <MousePointerClick className="size-5" />
                       flycli
                     </span>
                   </div>
@@ -366,7 +381,8 @@ const Chat = () => {
                           onSelect={handleCursorPositionChange}
                           ref={textareaRef}
                           value={text}
-                          rows={1}
+                         // rows={1}
+                         // onFocus={handleFocus}
                           placeholder="Ask flycli anything..."
                           className="min-h-10 max-h-32 py-3 pl-4 pr-10 text-foreground placeholder:text-zinc-500 caret-pink-400 selection:bg-pink-500/20 bg-transparent"
                         />

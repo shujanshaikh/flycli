@@ -114,7 +114,6 @@ export function TerminalComponent({ enabled }: TerminalComponentProps) {
         ws.addEventListener('error', handleError);
 
         ws.addEventListener('open', () => {
-            terminal.writeln('\r\n\x1b[32mConnected to local terminal\x1b[0m');
             terminal.write('\r\n$ ');
         });
 
