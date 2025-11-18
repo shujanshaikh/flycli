@@ -39,6 +39,14 @@ export const pomptNumber = async (options: PromptNumber) => {
 }
 
 
+export const apiKey = async () => {
+    const result = await input({
+        message: chalk.cyan('Enter your AI_GATEWAY_API_KEY'),
+        default: chalk.gray(''),
+    });
+    return result;
+}
+
 export const promptConfirm = async (
     options: PromptNumber,
   ): Promise<boolean> => {

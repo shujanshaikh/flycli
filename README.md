@@ -165,6 +165,10 @@ turbo build --filter=toolbar
 turbo build --filter=agent
 ```
 
+## Element Selection
+
+If you want to implement element selection functionality in your project, use **[React Grab](https://www.react-grab.com/)** by Aiden Bai. React Grab provides powerful element selection capabilities for React applications.
+
 ## How It Works
 
 1. **flycli starts a server** on the specified port (default: 3100)

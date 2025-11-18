@@ -200,6 +200,22 @@ turbo build --filter=agent`}
               </pre>
             </div>
           </section>
+
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-white">Element Selection</h2>
+            <p className="text-neutral-200">
+              If you want to implement element selection functionality in your project, use{" "}
+              <a 
+                href="https://www.react-grab.com/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline"
+              >
+                React Grab
+              </a>{" "}
+              by Aiden Bai. React Grab provides powerful element selection capabilities for React applications.
+            </p>
+          </section>
                     
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold text-white">How It Works</h2>

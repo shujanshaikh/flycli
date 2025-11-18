@@ -26,6 +26,7 @@ export async function startServer() {
     message: 'Enter the port number for the development server',
     default: 3000,
   });
+  
   const DEV_PORT =  3100;
   const APP_PORT = appPort || 3000;
 
