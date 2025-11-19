@@ -50,7 +50,7 @@ export function MessageInput({
         onSubmit={onSubmit}
         globalDrop
         multiple
-        inputGroupClassName="bg-white/5 backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm border border-white/10 shadow-lg transition-all hover:border-white/20 focus-within:border-pink-500/30 focus-within:ring-1 focus-within:ring-pink-500/20"
+        inputGroupClassName="bg-zinc-800/50 backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm border border-white/5 shadow-sm transition-all hover:border-white/10 focus-within:border-pink-500/20 focus-within:ring-1 focus-within:ring-pink-500/10 rounded-[1.5rem]"
       >
         <PromptInputBody>
           <PromptInputTextarea
@@ -59,7 +59,7 @@ export function MessageInput({
             ref={textareaRef}
             value={text}
             placeholder="Ask flycli anything..."
-            className="min-h-10 max-h-32 py-3 pl-4 pr-10 text-foreground placeholder:text-zinc-500 caret-pink-400 selection:bg-pink-500/20 bg-transparent"
+            className="min-h-10 max-h-32 py-3 pl-5 pr-12 text-foreground placeholder:text-zinc-500 caret-pink-400 selection:bg-pink-500/20 bg-transparent"
           />
           {showMentionPopover && textareaRef.current && (
             <div
@@ -91,7 +91,7 @@ export function MessageInput({
           <PromptInputSubmit
             size="icon-sm"
             variant="ghost"
-            className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-lg text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             disabled={!text && status !== 'streaming'}
             status={status}
             aria-label="Send message"

@@ -19,13 +19,13 @@ export function ToolbarHeader({
 }: ToolbarHeaderProps) {
   return (
     <div
-      className="flex items-center justify-between px-4 py-3 cursor-grab active:cursor-grabbing border-b border-border/30"
+      className="flex items-center justify-between px-5 py-4 cursor-grab active:cursor-grabbing"
       onMouseDown={onMouseDown}
     >
       <div className="flex items-center gap-2">
-        <span className="flex items-center gap-1.5 px-2.5 py-1 text-pink-400/90 text-xs font-medium tracking-wide">
+        <span className="flex items-center gap-2 text-zinc-200 text-sm font-medium tracking-tight">
+          <MousePointerClick className="size-4 text-pink-500" />
           flycli
-          <MousePointerClick className="size-5" />
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -38,7 +38,7 @@ export function ToolbarHeader({
         />
         <button
           onClick={onCollapse}
-          className="text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded-md hover:bg-white/5"
+          className="text-zinc-500 hover:text-zinc-300 transition-colors p-2 rounded-full hover:bg-white/5"
         >
           <MessageCircleDashed className="size-4" />
         </button>

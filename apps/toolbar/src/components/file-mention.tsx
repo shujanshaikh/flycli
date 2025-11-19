@@ -144,7 +144,7 @@ export function FileMention({
 
   if (isLoading) {
     return (
-      <div className="w-[300px] rounded-lg border border-white/10 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden">
+      <div className="w-[300px] rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden p-1">
         <div className="flex items-center gap-2 px-3 py-2.5">
           <Loader2 className="size-3.5 animate-spin text-zinc-400" />
           <span className="text-xs text-zinc-400 font-medium">Loading files...</span>
@@ -155,7 +155,7 @@ export function FileMention({
 
   if (filteredFiles.length === 0) {
     return (
-      <div className="w-[300px] rounded-lg border border-white/10 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden">
+      <div className="w-[300px] rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden p-1">
         <div className="flex items-center gap-2 px-3 py-2.5">
           <FileIcon className="size-3.5 text-zinc-500" />
           <span className="text-xs text-zinc-500">
@@ -169,17 +169,17 @@ export function FileMention({
   return (
     <div
       ref={containerRef}
-      className="w-[300px] rounded-lg border border-white/10 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden"
+      className="w-[300px] rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden p-1"
     >
       {query && (
-        <div className="px-3 py-2 border-b border-white/5">
-          <span className="text-xs text-zinc-500 font-medium">
+        <div className="px-3 py-2 border-b border-white/5 mb-1">
+          <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
             {filteredFiles.length} {filteredFiles.length === 1 ? 'file' : 'files'} found
           </span>
         </div>
       )}
       <Command className="rounded-lg bg-transparent">
-        <CommandList ref={commandListRef} className="max-h-[240px] overflow-y-auto py-1.5">
+        <CommandList ref={commandListRef} className="max-h-[240px] overflow-y-auto py-0.5">
           {filteredFiles.map((file, index) => {
             const isSelected = selectedIndex === index;
             
@@ -189,10 +189,10 @@ export function FileMention({
                 value={file}
                 onSelect={() => onFileSelect(file)}
                 className={cn(
-                  "cursor-pointer px-3 py-2 mx-1.5 rounded-md transition-all duration-200",
+                  "cursor-pointer px-3 py-2 mx-0.5 rounded-lg transition-all duration-200",
                   isSelected 
-                    ? "bg-white/10 border border-white/20 shadow-sm" 
-                    : "hover:bg-white/5 border border-transparent"
+                    ? "bg-pink-500/10 text-pink-400" 
+                    : "hover:bg-white/5 text-zinc-400 hover:text-zinc-200"
                 )}
               >
                 <div 
@@ -200,13 +200,10 @@ export function FileMention({
                   className="flex items-center gap-2 w-full"
                 >
                   <FileIcon className={cn(
-                    "size-3.5 flex-shrink-0",
-                    isSelected ? "text-pink-400/90" : "text-zinc-500"
+                    "size-3.5 flex-shrink-0 transition-colors",
+                    isSelected ? "text-pink-400" : "text-zinc-500 group-hover:text-zinc-400"
                   )} />
-                  <span className={cn(
-                    "text-xs font-mono truncate flex-1",
-                    isSelected ? "text-zinc-100" : "text-zinc-400"
-                  )}>
+                  <span className="text-xs font-mono truncate flex-1">
                     {file}
                   </span>
                 </div>

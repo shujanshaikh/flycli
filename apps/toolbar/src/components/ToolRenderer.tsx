@@ -1,4 +1,4 @@
-import { FileText, FolderTree, Search, Edit, Trash2, CheckCircle, Loader2, Files } from 'lucide-react';
+import { FileText, FolderTree, Search, Edit, Trash2, CheckCircle2, XCircle, Loader2, Files } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -74,11 +74,11 @@ const getToolName = (toolType: string) => {
 
 const getStatusIndicator = (state: ToolRendererProps['state']) => {
 
-  if (state === 'output-available') return <span className="inline-block w-2 h-2 rounded-full bg-pink-500" />;
+  if (state === 'output-available') return <CheckCircle2 className="w-4 h-4 text-muted-foreground" />;
 
-  if (state === 'output-error') return <span className="inline-block w-2 h-2 rounded-full bg-red-500" />;
+  if (state === 'output-error') return <XCircle className="w-4 h-4 text-muted-foreground" />;
 
-  return <Loader2 className="w-3.5 h-3.5 animate-spin text-pink-400" />;
+  return <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />;
 
 };
 
@@ -100,13 +100,13 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
 
     <div className={cn(
 
-      "my-2 rounded-xl border transition-all bg-background/50",
+      "my-2 rounded-lg border bg-card text-card-foreground shadow-sm transition-all",
 
-      isSuccess && "border-pink-700/40",
+      isSuccess && "border-border/50 bg-muted/20",
 
-      isError && "border-red-600/40",
+      isError && "border-border/50 bg-muted/20",
 
-      !isSuccess && !isError && "border-border/60"
+      !isSuccess && !isError && "border-border"
 
     )}>
 
@@ -117,7 +117,7 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
 
           <Icon className="w-4 h-4 text-muted-foreground" />
 
-          <span className="text-xs font-medium text-pink-300">{toolName}</span>
+          <span className="text-xs font-medium text-foreground">{toolName}</span>
 
         </div>
 
@@ -134,7 +134,7 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
 
           {errorText ? (
 
-            <div className="text-xs text-red-400">{errorText}</div>
+            <div className="text-xs text-muted-foreground">{errorText}</div>
 
           ) : output ? (
 
@@ -233,7 +233,7 @@ const renderToolSpecificOutput = (toolType: string, output: ToolOutput) => {
 
               {file.type === 'directory' ? (
 
-                <FolderTree className="w-3 h-3 text-pink-400 flex-shrink-0" />
+                <FolderTree className="w-3 h-3 text-muted-foreground flex-shrink-0" />
 
               ) : (
 
@@ -339,9 +339,9 @@ const renderToolSpecificOutput = (toolType: string, output: ToolOutput) => {
       const successOutput = output as Extract<ToolOutput, { success?: boolean }>;
       return successOutput.success ? (
 
-        <div className="mt-2 flex items-center gap-1.5 text-pink-400">
+        <div className="mt-2 flex items-center gap-1.5 text-muted-foreground">
 
-          <CheckCircle className="w-3 h-3" />
+          <CheckCircle2 className="w-3 h-3" />
 
           <span className="text-[10px]">Changes applied successfully</span>
 
@@ -356,7 +356,7 @@ const renderToolSpecificOutput = (toolType: string, output: ToolOutput) => {
       const deleteOutput = output as Extract<ToolOutput, { success?: boolean }>;
       return deleteOutput.success ? (
 
-        <div className="mt-2 flex items-center gap-1.5 text-pink-400">
+        <div className="mt-2 flex items-center gap-1.5 text-muted-foreground">
 
           <Trash2 className="w-3 h-3" />
 

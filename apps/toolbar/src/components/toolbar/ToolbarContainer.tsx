@@ -29,7 +29,7 @@ export function ToolbarContainer({
         cursor: isDragging ? 'grabbing' : 'default',
       }}
     >
-      <div className="flex flex-col h-full max-h-full bg-zinc-900/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl rounded-2xl border border-border/40 shadow-2xl overflow-hidden ring-1 ring-white/5">
+      <div className="flex flex-col h-full max-h-full bg-zinc-900/90 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5">
         {children}
       </div>
     </div>

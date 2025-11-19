@@ -28,8 +28,8 @@ export function ConversationSection({ messages, status, onMouseDown }: Conversat
           {messages.map((message) => (
             <Message from={message.role} key={message.id}>
               <MessageContent
-                className="rounded-lg bg-transparent transition-colors
-                  group-[.is-user]:rounded-lg group-[.is-user]:bg-zinc-800/50 group-[.is-user]:text-foreground group-[.is-user]:border group-[.is-user]:border-white/5
+                className="rounded-2xl bg-transparent transition-colors
+                  group-[.is-user]:rounded-2xl group-[.is-user]:bg-zinc-800/30 group-[.is-user]:text-foreground
                   group-[.is-assistant]:bg-transparent group-[.is-assistant]:text-foreground"
               >
                 {message.parts.map((part, i) => {

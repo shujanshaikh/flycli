@@ -24,6 +24,10 @@ export const chatModel = [  {
   name: "Claude 3.5 Haiku",
   description: "Claude 3.5 Haiku is a fast and efficient model for quick responses.",
 }, {
+  id : "google/gemini-3-pro-preview",
+  name: "Gemini 3 Pro Preview",
+  description: "Gemini 3 Pro Preview is a powerful model for quick responses.",
+}, {
   id: "zai/glm-4.6",
   name: "GLM 4.6",
   description: "Powerful Chinese language model with strong multilingual support.",

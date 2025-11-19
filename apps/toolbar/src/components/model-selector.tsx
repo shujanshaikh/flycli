@@ -34,37 +34,34 @@ export function ModelSelector({
         size={size}
         aria-label="Select model"
         className={cn(
-          // Minimal, no border/background when idle
-          "border-0 border-transparent shadow-none bg-transparent rounded-none px-2 text-[15px] leading-6",
-          // Subtle hover/active text emphasis without surfaces
-          "text-muted-foreground whitespace-nowrap transition-none",
-          // Ensure NO background/border in dark/hover/focus/open states
-          "hover:bg-transparent data-[state=open]:bg-transparent focus-visible:border-0 focus-visible:ring-0",
-          "dark:bg-transparent dark:hover:bg-transparent",
-          // Keep icon color consistent as well
-          "[&_svg]:text-muted-foreground [&_svg]:opacity-60 data-[state=open]:[&_svg]:text-muted-foreground",
-          // Remove default ring visuals
-          "focus-visible:ring-0 focus-visible:outline-none",
+          "h-8 gap-2 px-3 rounded-full border border-white/5 bg-white/5 shadow-sm transition-all duration-200",
+          "text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-white/10 hover:border-white/10",
+          "focus-visible:ring-1 focus-visible:ring-pink-500/20 focus-visible:border-pink-500/20",
+          "data-[state=open]:bg-white/10 data-[state=open]:border-white/10 data-[state=open]:text-zinc-200",
+          "[&_svg]:size-3.5 [&_svg]:text-zinc-500 [&_svg]:transition-colors group-hover:[&_svg]:text-zinc-400",
           className
         )}
       >
-        <SelectValue className="truncate text-muted-foreground" />
+        <SelectValue className="truncate" />
       </SelectTrigger>
       <SelectContent
         align={align}
         container={container ?? undefined}
         className={cn(
-          // Match overall app aesthetic used elsewhere
-          "rounded-md bg-zinc-950/95 border border-zinc-800/80 text-zinc-200 shadow-md min-w-0 w-[var(--radix-select-trigger-width)]"
+          "rounded-xl bg-zinc-900/95 backdrop-blur-xl border border-white/10 shadow-2xl p-1",
+          "min-w-[200px] animate-in fade-in-0 zoom-in-95"
         )}
       >
         {chatModel.map((m) => (
           <SelectItem
             key={m.id}
             value={m.id}
-            className="text-sm px-2 py-1.5 hover:bg-zinc-800/60 focus:bg-zinc-800/60 data-[state=checked]:text-foreground data-[state=checked]:font-medium data-[state=checked]:[&_svg]:text-foreground"
+            className="text-xs px-3 py-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-white/5 focus:bg-white/5 focus:text-zinc-200 cursor-pointer transition-colors data-[state=checked]:text-pink-400 data-[state=checked]:bg-pink-500/10"
           >
-            {m.name}
+            <div className="flex flex-col gap-0.5">
+              <span className="font-medium">{m.name}</span>
+              {/* <span className="text-[10px] text-zinc-500">{m.description}</span> */}
+            </div>
           </SelectItem>
         ))}
       </SelectContent>
