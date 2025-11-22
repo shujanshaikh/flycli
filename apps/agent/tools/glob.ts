@@ -2,13 +2,16 @@ import { tool } from "ai";
 import { z } from "zod";
 import { glob } from "node:fs/promises";
 
+const globSchema = z.object({
+    pattern: z.string().describe('Glob pattern (e.g., "**/*.js")'),
+    path: z.string().optional().describe('Relative directory path to search in'),
+})
+
 export const globTool = tool({
     description: "Use this tool to find files matching a glob pattern in a given path",
-    inputSchema: z.object({
-        pattern: z.string().describe('Glob pattern (e.g., "**/*.js")'),
-        path: z.string().optional().describe('Relative directory path to search in'),
-    }),
-    execute: async ({ pattern, path }) => {
+    inputSchema: globSchema,
+    execute: async (input) => {
+        const { pattern, path } = input;
 
 
         if (!pattern) {

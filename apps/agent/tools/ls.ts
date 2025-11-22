@@ -3,6 +3,17 @@ import { z } from "zod";
 import { access, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
+const excludePatterns = [
+  "node_modules",
+  "dist",
+  "build",
+  "coverage",
+  "logs",
+  "tmp",
+];
+
+const excludePattern = excludePatterns.join("|");
+
 export const list = tool({
   description: "Use this tool to list the file in the directory",
   inputSchema: z.object({
@@ -94,7 +105,7 @@ export const list = tool({
           const entryRelativePath = path.relative(absolutePath, entryAbsolutePath) || ".";
 
           if (entry.isDirectory()) {
-            if (includeDirectoriesNormalized && matchPattern(entry.name)) {
+            if (includeDirectoriesNormalized && matchPattern(entry.name) && !entry.name.match(excludePattern)) {
               collected.push({
                 name: entry.name,
                 absolutePath: entryAbsolutePath,
@@ -107,7 +118,7 @@ export const list = tool({
               await walk(entryAbsolutePath, depth + 1);
             }
           } else if (entry.isFile()) {
-            if (includeFilesNormalized && matchPattern(entry.name)) {
+            if (includeFilesNormalized && matchPattern(entry.name) && !entry.name.match(excludePattern)) {
               collected.push({
                 name: entry.name,
                 absolutePath: entryAbsolutePath,

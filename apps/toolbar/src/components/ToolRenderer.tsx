@@ -81,12 +81,81 @@ export const ToolRenderer = ({ toolType, state, output, errorText }: ToolRendere
         </span>
         {fileName && (
           <>
-            <span className="text-muted-foreground/60">•</span>
             <span className="text-muted-foreground font-mono">
               {fileName}
             </span>
           </>
         )}
+      </div>
+    );
+  }
+
+  if (toolType === 'tool-searchReplace' && output && 'message' in output) {
+    const fileName = extractFileName(output.message);
+    return (
+      <div className="my-1 inline-flex items-center gap-2 text-xs text-foreground/80">
+        <span className="font-medium">
+          Replaced text
+        </span>
+      {fileName && (
+        <>
+          <span className="text-muted-foreground font-mono">
+            {fileName}
+          </span>
+        </>
+      )}
+      </div>
+    );
+  }
+
+  if (toolType === 'tool-grepTool' && output && 'message' in output) {
+    return (
+      <div className="my-1 inline-flex items-center gap-2 text-xs text-foreground/80">
+        <span className="font-medium">
+         grep: {output.message}
+        </span> 
+      </div>
+    );
+  }
+
+
+  if (toolType === 'tool-list' && output && 'message' in output) {  
+    return (
+      <div className="my-1 inline-flex items-center gap-2 text-xs text-foreground/80">
+        <span className="font-medium">
+        list: {output.message}
+        </span>
+        
+      </div>
+    );
+  }
+
+  if (toolType === 'tool-globTool' && output && 'message' in output) {
+    return (
+      <div className="my-1 inline-flex items-center gap-2 text-xs text-foreground/80">
+        <span className="font-medium">
+          glob: {output.message}
+        </span>
+      </div>
+    );
+  }
+
+  if (toolType === 'tool-deleteFile' && output && 'message' in output) {
+    return (
+      <div className="my-1 inline-flex items-center gap-2 text-xs text-foreground/80">
+        <span className="font-medium">
+          delete: {output.message}
+        </span>
+      </div>
+    );
+  }
+
+  if (toolType === 'tool-editFiles' && output && 'message' in output) {
+    return (
+      <div className="my-1 inline-flex items-center gap-2 text-xs text-foreground/80">
+        <span className="font-medium">
+          edit: {output.message}
+        </span>
       </div>
     );
   }
