@@ -105,7 +105,9 @@ export const list = tool({
           const entryRelativePath = path.relative(absolutePath, entryAbsolutePath) || ".";
 
           if (entry.isDirectory()) {
-            if (includeDirectoriesNormalized && matchPattern(entry.name) && !entry.name.match(excludePattern)) {
+            const isExcluded = entry.name.match(excludePattern);
+            
+            if (includeDirectoriesNormalized && matchPattern(entry.name) && !isExcluded) {
               collected.push({
                 name: entry.name,
                 absolutePath: entryAbsolutePath,
@@ -114,7 +116,7 @@ export const list = tool({
               });
             }
 
-            if (recursive && depth < maxDepthNormalized) {
+            if (recursive && depth < maxDepthNormalized && !isExcluded) {
               await walk(entryAbsolutePath, depth + 1);
             }
           } else if (entry.isFile()) {

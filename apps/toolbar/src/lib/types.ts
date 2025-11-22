@@ -121,6 +121,22 @@ export interface GrepOutput {
   error?: string;
 }
 
+export interface EditFilesOutput {
+  success: boolean;
+  message: string;
+  error?: string;
+  linesAdded?: number;
+  linesRemoved?: number;
+  isNewFile?: boolean;
+}
+
+export interface DeleteFileOutput {
+  success: boolean;
+  message: string;
+  error?: string;
+  linesDeleted?: number;
+}
+
 export interface SuccessOutput {
   success: boolean;
   message: string;
@@ -128,7 +144,7 @@ export interface SuccessOutput {
   codes?: unknown;
 }
 
-export type ToolOutput = ReadFileOutput | ListOutput | GlobOutput | GrepOutput | SuccessOutput;
+export type ToolOutput = ReadFileOutput | ListOutput | GlobOutput | GrepOutput | SuccessOutput | EditFilesOutput | DeleteFileOutput;
 
 export type ToolPart = {
   type: `tool-${keyof ChatTools}` | string;

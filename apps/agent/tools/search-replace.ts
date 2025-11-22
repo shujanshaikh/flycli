@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { calculateDiffStats } from "../lib/diff";
 
 const searchReplaceSchema = z.object({
     file_path: z.string().describe("The path to the file you want to search and replace in. You can use either a relative path in the workspace or an absolute path. If an absolute path is provided, it will be preserved as is"),
@@ -91,13 +92,18 @@ export const searchReplace = tool({
 
             // Perform the replacement
             const newContent = fileContent.replace(old_string, new_string);
+            const diffStats = calculateDiffStats(fileContent, newContent);
 
             // Write the modified content back to the file
             try {
                 await writeFile(absolute_file_path, newContent, 'utf-8');
                 return {
                     success: true,
+                    old_string: old_string,
+                    new_string: new_string,
                     message: `Successfully replaced string in file: ${file_path}`,
+                    linesAdded: diffStats.linesAdded,
+                    linesRemoved: diffStats.linesRemoved,
                 };
             } catch (error: any) {
                 return {

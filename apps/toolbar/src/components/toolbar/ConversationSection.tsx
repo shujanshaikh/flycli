@@ -8,7 +8,7 @@ import { Response } from '@/components/ai-elements/response';
 import { ToolRenderer } from '@/components/ToolRenderer';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning';
 import { Shimmer } from '@/components/ai-elements/shimmer';
-import type { ChatMessage, ToolPart } from '@/lib/types';
+import type { ChatMessage } from '@/lib/types';
 import type { ChatStatus } from 'ai';
 
 interface ConversationSectionProps {
@@ -48,28 +48,15 @@ export function ConversationSection({ messages, status, onMouseDown }: Conversat
                           isStreaming={
                             status === 'streaming' &&
                             i === message.parts.length - 1 &&
-                            message.id === messages.at(-1)?.id
+                            message.id === messages[messages.length - 1]?.id
                           }
                         >
                           <ReasoningTrigger />
                           <ReasoningContent>{part.text}</ReasoningContent>
                         </Reasoning>
                       );
-                    default: {
-                      if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
-                        const toolPart = part as ToolPart;
-                        return (
-                          <ToolRenderer
-                            key={`${message.id}-${i}`}
-                            toolType={toolPart.type}
-                            state={toolPart.state}
-                            output={toolPart.output}
-                            errorText={toolPart.errorText}
-                          />
-                        );
-                      }
-                      return null;
-                    }
+                    default:
+                      return <ToolRenderer key={`${message.id}-${i}`} part={part} />;
                   }
                 })}
               </MessageContent>

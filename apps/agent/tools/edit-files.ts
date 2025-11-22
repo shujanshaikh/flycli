@@ -1,33 +1,75 @@
 import { tool } from "ai";
 import { z } from "zod"
-import { writeFile } from "node:fs/promises"
+import { calculateDiffStats } from "../lib/diff";
+import path from "node:path";
+import fs from "node:fs";
+import { mkdir } from "node:fs/promises";
 
 const editFilesSchema = z.object({
-  relative_file_path: z
+  target_file: z
     .string()
     .describe("The relative path to the file to modify. The tool will create any directories in the path that don't exist"),
-  code_edit: z.string().describe("The content to write to the file"),
+  content : z.string().describe("The content to write to the file"),
+  instructions : z.string().describe("The instructions for the edit").optional(),
+  providedNewFile : z.boolean().describe("The new file content to write to the file").optional(),
 })
 
 export const editFiles = tool({
   description: 'Use this tool to write or edit a file at the specified path.',
   inputSchema: editFilesSchema,
   execute: async (input) => {
-    const { relative_file_path, code_edit } = input;
+    const { target_file, content, instructions, providedNewFile } = input;
     try {
-      const codes = await writeFile(relative_file_path, code_edit , {
-        encoding : "utf-8",
-      })
-      return {
-        success: true,
-        message: `Successfully wrote to file: ${relative_file_path}`,
-        codes: codes,
-      };
+      const filePath = path.resolve(process.cwd(), target_file);
+      const dirPath = path.dirname(filePath);
+
+      // Ensure directory exists
+      await mkdir(dirPath, { recursive: true });
+
+      let isNewFile = providedNewFile
+      let existingContent = ""
+      if(isNewFile === undefined) {
+        try {
+          existingContent = await fs.promises.readFile(filePath, 'utf-8');
+          isNewFile = false
+        } catch (error) {
+          isNewFile = true
+        }
+      } else if (!isNewFile) {
+        try {
+          existingContent = await fs.promises.readFile(filePath, 'utf-8');
+        } catch (error) {
+          isNewFile = true
+        }
+      }
+
+      // Write the new content
+      await fs.promises.writeFile(filePath, content);
+
+      if (isNewFile) {
+        return {
+          success: true,
+          isNewFile: true,
+          message: `Created new file: ${target_file}`,
+          linesAdded: content.split("\n").length,
+        };
+      } else {
+        const diffStats = calculateDiffStats(existingContent, content);
+
+        return {
+          success: true,
+          isNewFile: false,
+          message: `Modified file: ${target_file}`,
+          linesAdded: diffStats.linesAdded,
+          linesRemoved: diffStats.linesRemoved,
+        };
+      }
+      
     } catch (error : any) {
       return {
         success: false,
-        message: error.message,
-        error: 'WRITE_ERROR',
+        error: error instanceof Error ? error.message : "Unknown error",
+        message: `Failed to edit file: ${target_file}`,
       };
       
     }
