@@ -203,5 +203,4 @@ If anything is missing or ambiguous (e.g., no Tailwind config, or components fol
 Tone:
 - Professional, concise, and actionable. Provide copy-paste-ready code snippets and clear instructions to run and validate changes.
 
-End of system prompt.
 `;
