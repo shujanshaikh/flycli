@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import type { PromptInputMessage } from '@/components/ai-elements/prompt-input';
 import { chatModel } from './lib/models';
 import { useDragAndDrop } from './hooks/use-drag-and-drop';
-import { useClipboardMonitor } from './hooks/use-clipboard-monitor';
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts';
 import { useMentions } from './hooks/use-mentions';
 import { useChatTransport } from './hooks/use-chat-transport';
@@ -14,6 +13,7 @@ import { MessageInput } from './components/toolbar/MessageInput';
 import { ToolbarFooter } from './components/toolbar/ToolbarFooter';
 import { TerminalSection } from './components/toolbar/TerminalSection';
 import { AppFrame } from './components/toolbar/AppFrame';
+import { ElementCaptureOverlay } from './components/ElementCaptureOverlay';
 
 const Chat = () => {
   const [text, setText] = useState<string>('');
@@ -25,9 +25,20 @@ const Chat = () => {
   const { position, isDragging, toolbarRef, handleMouseDown } = useDragAndDrop();
   const { messages, sendMessage, status, stop } = useChatTransport();
 
-  useClipboardMonitor(setText);
   useKeyboardShortcuts('cmd+k', () => setIsCollapsed(!isCollapsed), [isCollapsed]);
 
+  const handleElementCaptureMessage = (messageText: string, modelId: string) => {
+    sendMessage(
+      {
+        text: messageText,
+      },
+      {
+        body: {
+          model: modelId,
+        },
+      }
+    );
+  };
   const {
     cursorPosition,
     showMentionPopover,
@@ -69,7 +80,11 @@ const Chat = () => {
     <div className="dark">
       <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800/50">
         <AppFrame />
-
+        <ElementCaptureOverlay
+          onSendMessage={handleElementCaptureMessage}
+          model={model}
+          status={status}
+        />
         <ToolbarContainer
           position={position}
           isDragging={isDragging}
@@ -121,8 +136,8 @@ const Chat = () => {
             </>
           )}
         </ToolbarContainer>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

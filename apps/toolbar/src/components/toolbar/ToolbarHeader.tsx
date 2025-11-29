@@ -1,5 +1,5 @@
 import { MessageCircleDashed, MousePointerClick } from 'lucide-react';
-import { ModelSelector } from '@/components/model-selector';
+import { ModelSelector } from '@/components/ModelSelector';
 import type { RefObject } from 'react';
 
 interface ToolbarHeaderProps {

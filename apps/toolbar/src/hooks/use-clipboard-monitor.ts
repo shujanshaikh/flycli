@@ -1,9 +1,23 @@
 import { useEffect, useRef } from 'react';
 
-export function useClipboardMonitor(onClipboardChange: (text: string) => void) {
+export interface ClipboardChangeEvent {
+  text: string;
+  x: number;
+  y: number;
+}
+
+export function useClipboardMonitor(onClipboardChange: (event: ClipboardChangeEvent) => void) {
   const lastPastedRef = useRef<string>('');
+  const mousePositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
+    // Track mouse position globally
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
     const autoCopy = async () => {
       if (!document.hasFocus()) {
         return;
@@ -12,7 +26,11 @@ export function useClipboardMonitor(onClipboardChange: (text: string) => void) {
       try {
         const text = await navigator.clipboard.readText();
         if (text.includes('<selected_element>') && text !== lastPastedRef.current) {
-          onClipboardChange(text);
+          onClipboardChange({
+            text,
+            x: mousePositionRef.current.x,
+            y: mousePositionRef.current.y,
+          });
           lastPastedRef.current = text;
         }
       } catch (error) {
@@ -23,7 +41,7 @@ export function useClipboardMonitor(onClipboardChange: (text: string) => void) {
     };
 
     const interval = setInterval(autoCopy, 1000);
-    
+
     const handleFocus = () => {
       autoCopy();
     };
@@ -32,6 +50,7 @@ export function useClipboardMonitor(onClipboardChange: (text: string) => void) {
     return () => {
       clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [onClipboardChange]);
 }

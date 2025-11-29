@@ -10,7 +10,7 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
-import { FileMention } from '@/components/file-mention';
+import { FileMention } from '@/components/FileMention';
 import { ArrowUp, SquareIcon } from 'lucide-react';
 import type { RefObject } from 'react';
 import type { ChatStatus } from 'ai';
