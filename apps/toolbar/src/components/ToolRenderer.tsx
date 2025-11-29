@@ -16,12 +16,27 @@ export const ToolRenderer = ({ part }: { part: ChatMessage['parts'][number] }) =
     // }
     if (state === "output-available") {
       const output = part.output as { success?: boolean; message?: string; linesAdded?: number; linesRemoved?: number; isNewFile?: boolean } | undefined;
+      const linesAdded = output?.linesAdded || 0;
+      const linesRemoved = output?.linesRemoved || 0;
+      const hasDiff = linesAdded > 0 || linesRemoved > 0;
       if (output?.isNewFile) {
         return (
           <div key={toolCallId} className="px-3 py-1.5">
             <span className="text-sm text-zinc-300">Created {part.input?.target_file || 'file'}</span>
-            {output?.linesAdded ? ` (+${output.linesAdded})` : ''}
-            {output?.linesRemoved ? ` (-${output.linesRemoved})` : ''}
+            {hasDiff && (
+            <span className="ml-2 inline-flex gap-1 text-xs align-middle">
+              {linesAdded > 0 && (
+                <span className="bg-emerald-900/50 text-emerald-300 rounded px-1.5 py-0.5 font-mono">
+                  +{linesAdded}
+                </span>
+              )}
+              {linesRemoved > 0 && (
+                <span className="bg-rose-900/50 text-rose-300 rounded px-1.5 py-0.5 font-mono">
+                  -{linesRemoved}
+                </span>
+              )}
+            </span>
+          )}
           </div>
         );
       }

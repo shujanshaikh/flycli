@@ -1,10 +1,14 @@
-export const chatModel = [  {
+export const chatModel = [ {
+   id : "openai/gpt-5-nano",
+   name: "GPT-5 Nano",
+   description: "GPT-5 Nano is a version of GPT-5 optimized for speed and cost.",
+} , {
   id: "openai/gpt-5.1-codex",
   name: "GPT-5.1 Codex",
   description: "GPT-5.1-Codex is a version of GPT-5.1 optimized for agentic coding tasks in Codex or similar environments.",
 }, {
   id: "openai/gpt-5.1-codex-mini",
-  name: "GPT-5.1 Codex Nano",
+  name: "GPT-5.1 Codex Mini",
   description: "A smaller version of GPT-5.1 Codex, optimized for speed and cost.",
 }, {
   id: "anthropic/claude-haiku-4.5",
