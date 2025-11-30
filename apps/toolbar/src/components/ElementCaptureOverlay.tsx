@@ -24,53 +24,141 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
   const [notePromptText, setNotePromptText] = useState<string>('');
   const popupRef = useRef<HTMLDivElement>(null);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
+  const clickPositionRef = useRef<{ x: number; y: number; timestamp: number } | null>(null);
+
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.closest("[data-slot='popover-content']") ||
+        target.closest("[data-slot='toolbar-container']")
+      ) {
+        return;
+      }
+      clickPositionRef.current = { 
+        x: e.clientX, 
+        y: e.clientY,
+        timestamp: Date.now()
+      };
+    };
+
+    document.addEventListener('mousedown', handleMouseDown, true);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown, true);
+    };
+  }, []);
 
   const handleElementCapture = (event: ClipboardChangeEvent) => {
-    // Create a special note for the captured element
+    const now = Date.now();
+    const recentClick = clickPositionRef.current && 
+      (now - clickPositionRef.current.timestamp) < 5000 
+      ? clickPositionRef.current 
+      : null;
+    
+    const position = recentClick 
+      ? { x: recentClick.x, y: recentClick.y }
+      : { x: event.x, y: event.y };
+    
     const captureNote: ElementCaptureNote = {
       id: nanoid(),
-      x: event.x,
-      y: event.y,
+      x: position.x,
+      y: position.y,
       text: event.text,
     };
-    setElementCaptureNote(captureNote);
-    setNotePromptText(''); // Keep prompt empty for user to type
-  };
+    
+    const popupWidth = 384;
+    const popupHeight = 280;
+    const padding = 4;
+    const offset = 5;
 
-  useClipboardMonitor(handleElementCapture);
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
-  // Update popup position when element capture note changes
-  useEffect(() => {
-    if (elementCaptureNote) {
-      const popupWidth = 384; // w-96 = 384px
-      const popupHeight = 280; // Estimated height
-      const padding = 16; // Minimum padding from viewport edges
+    let x = position.x + offset;
+    let y = position.y + offset;
 
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+    const wouldGoOffRight = x + popupWidth > viewportWidth - padding;
+    const wouldGoOffBottom = y + popupHeight > viewportHeight - padding;
 
-      let x = elementCaptureNote.x;
-      let y = elementCaptureNote.y + 10; 
-
-      if (x + popupWidth > viewportWidth - padding) {
-        x = viewportWidth - popupWidth - padding;
-      }
+    if (wouldGoOffRight) {
+      x = position.x - popupWidth - offset;
       if (x < padding) {
-        x = padding;
+        x = position.x - popupWidth + 30;
+        if (x < padding) {
+          x = padding;
+        }
       }
+    }
 
-      if (y + popupHeight > viewportHeight - padding) {
-        y = elementCaptureNote.y - popupHeight - 10;
-
+    if (wouldGoOffBottom) {
+      y = position.y - popupHeight - offset;
+      if (y < padding) {
+        y = position.y - popupHeight + 30;
         if (y < padding) {
           y = padding;
         }
       }
+    }
+
+    if (x < padding) x = padding;
+    if (y < padding) y = padding;
+
+    setElementCaptureNote(captureNote);
+    setPopupPosition({ x, y });
+    setNotePromptText('');
+  };
+
+  useClipboardMonitor(handleElementCapture);
+
+  useEffect(() => {
+    if (!elementCaptureNote) {
+      setPopupPosition(null);
+      return;
+    }
+
+    const handleResize = () => {
+      const popupWidth = 384;
+      const popupHeight = 280;
+      const padding = 4;
+      const offset = 5;
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let x = elementCaptureNote.x + offset;
+      let y = elementCaptureNote.y + offset;
+
+      const wouldGoOffRight = x + popupWidth > viewportWidth - padding;
+      const wouldGoOffBottom = y + popupHeight > viewportHeight - padding;
+
+      if (wouldGoOffRight) {
+        x = elementCaptureNote.x - popupWidth - offset;
+        if (x < padding) {
+          x = elementCaptureNote.x - popupWidth + 30;
+          if (x < padding) {
+            x = padding;
+          }
+        }
+      }
+
+      if (wouldGoOffBottom) {
+        y = elementCaptureNote.y - popupHeight - offset;
+        if (y < padding) {
+          y = elementCaptureNote.y - popupHeight + 30;
+          if (y < padding) {
+            y = padding;
+          }
+        }
+      }
+
+      if (x < padding) x = padding;
+      if (y < padding) y = padding;
 
       setPopupPosition({ x, y });
-    } else {
-      setPopupPosition(null);
-    }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [elementCaptureNote]);
 
   function handleNotePromptSubmit() {
@@ -83,7 +171,8 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
     onSendMessage(messageText, model);
 
     setNotePromptText('');
-    setElementCaptureNote(null); 
+    setElementCaptureNote(null);
+    clickPositionRef.current = null;
   }
 
   return (
@@ -108,7 +197,7 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
         <div
           key={elementCaptureNote.id}
           ref={popupRef}
-          className="absolute w-96 transition-all duration-200 ease-out"
+          className="fixed w-96 transition-all duration-200 ease-out"
           style={{
             left: `${popupPosition.x}px`,
             top: `${popupPosition.y}px`,
@@ -128,6 +217,7 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
                 onClick={() => {
                   setElementCaptureNote(null);
                   setNotePromptText('');
+                  clickPositionRef.current = null;
                 }}
                 className="shrink-0 text-zinc-500 hover:text-pink-300 transition-colors p-0.5 rounded-full hover:bg-pink-500/10"
               >
@@ -148,6 +238,7 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
                   } else if (e.key === 'Escape') {
                     setElementCaptureNote(null);
                     setNotePromptText('');
+                    clickPositionRef.current = null;
                   }
                 }}
                 autoFocus

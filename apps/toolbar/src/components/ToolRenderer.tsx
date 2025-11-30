@@ -1,19 +1,25 @@
 import type { ChatMessage } from '@/lib/types';
-//import { Shimmer } from './ai-elements/shimmer';
+import { Loader } from './ai-elements/loader';
 
 export const ToolRenderer = ({ part }: { part: ChatMessage['parts'][number] }) => {
   if (part.type === "tool-editFiles") {
     const { toolCallId, state } = part;
 
-    // if (state === "input-streaming") {
-    //   return (
-    //     <div key={toolCallId} className="px-3 py-1.5">
-    //       <Shimmer className="text-sm text-zinc-400" duration={1}>
-    //         {`editing ${part.input?.target_file ?? 'file'}`}
-    //       </Shimmer>
-    //     </div>
-    //   );
-    // }
+    if (state === "input-streaming") {
+      return (
+        <div key={toolCallId} className="px-3 py-2">
+          <div className="inline-flex items-center gap-2.5 rounded-lg border border-zinc-800/50 bg-zinc-900/40 px-3 py-2 shadow-sm transition-all hover:border-zinc-700/50">
+            <Loader size={16} className="text-pink-400/80" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm text-zinc-400">Editing</span>
+              <span className="text-sm font-medium text-zinc-200">
+                {part.input?.target_file ?? 'file'}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
     if (state === "output-available") {
       const output = part.output as { success?: boolean; message?: string; linesAdded?: number; linesRemoved?: number; isNewFile?: boolean } | undefined;
       const linesAdded = output?.linesAdded || 0;
