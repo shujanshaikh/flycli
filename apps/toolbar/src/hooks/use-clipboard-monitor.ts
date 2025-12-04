@@ -25,7 +25,11 @@ export function useClipboardMonitor(onClipboardChange: (event: ClipboardChangeEv
 
       try {
         const text = await navigator.clipboard.readText();
-        if (text.includes('<selected_element>') && text !== lastPastedRef.current) {
+        const hasComponentTrace = /\s+in\s+\w+\s*\(at\s+[^)]+\)/m.test(text);
+        const hasJSXStructure = /<div[^>]*class\s*=/i.test(text) || /<[a-z][a-z0-9]*[^>]*>/i.test(text);
+        
+        // Must have both JSX structure and component trace to match the new format
+        if (hasComponentTrace && hasJSXStructure && text !== lastPastedRef.current) {
           onClipboardChange({
             text,
             x: mousePositionRef.current.x,
