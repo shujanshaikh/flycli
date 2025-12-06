@@ -24,48 +24,18 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
   const [notePromptText, setNotePromptText] = useState<string>('');
   const popupRef = useRef<HTMLDivElement>(null);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
-  const clickPositionRef = useRef<{ x: number; y: number; timestamp: number } | null>(null);
-
-  useEffect(() => {
-    const handleMouseDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.closest("[data-slot='popover-content']") ||
-        target.closest("[data-slot='toolbar-container']")
-      ) {
-        return;
-      }
-      clickPositionRef.current = { 
-        x: e.clientX, 
-        y: e.clientY,
-        timestamp: Date.now()
-      };
-    };
-
-    document.addEventListener('mousedown', handleMouseDown, true);
-    return () => {
-      document.removeEventListener('mousedown', handleMouseDown, true);
-    };
-  }, []);
 
   const handleElementCapture = (event: ClipboardChangeEvent) => {
-    const now = Date.now();
-    const recentClick = clickPositionRef.current && 
-      (now - clickPositionRef.current.timestamp) < 5000 
-      ? clickPositionRef.current 
-      : null;
-    
-    const position = recentClick 
-      ? { x: recentClick.x, y: recentClick.y }
-      : { x: event.x, y: event.y };
-    
+    // event.x and event.y now contain the accurate click position from the hook
+    const position = { x: event.x, y: event.y };
+
     const captureNote: ElementCaptureNote = {
       id: nanoid(),
       x: position.x,
       y: position.y,
       text: event.text,
     };
-    
+
     const popupWidth = 384;
     const popupHeight = 280;
     const padding = 4;
@@ -172,7 +142,6 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
 
     setNotePromptText('');
     setElementCaptureNote(null);
-    clickPositionRef.current = null;
   }
 
   return (
@@ -217,7 +186,6 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
                 onClick={() => {
                   setElementCaptureNote(null);
                   setNotePromptText('');
-                  clickPositionRef.current = null;
                 }}
                 className="shrink-0 text-zinc-500 hover:text-pink-300 transition-colors p-0.5 rounded-full hover:bg-pink-500/10"
               >
@@ -238,7 +206,6 @@ export function ElementCaptureOverlay({ onSendMessage, model, status }: ElementC
                   } else if (e.key === 'Escape') {
                     setElementCaptureNote(null);
                     setNotePromptText('');
-                    clickPositionRef.current = null;
                   }
                 }}
                 autoFocus
